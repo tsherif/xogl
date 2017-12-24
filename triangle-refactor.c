@@ -11,26 +11,24 @@ Colormap cmap;
 XWindowAttributes xWinAtt;
 
 int main(int argc, char** argv) {
+
+    // X Windows stuff
     disp = XOpenDisplay(NULL);
 
     if (disp == NULL) {
-        printf("ARGHHHH!!\n");
-        exit(1);
+        printf("Unable to connect to X Server\n");
+        return 1;
     }
 
     win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, 1000, 1000, 0, 0, 0);
     
-    openGLInit(disp, win, 4, 5);
 
     XSelectInput(disp, win, ExposureMask | KeyPressMask);
-    XMapWindow(disp, win);
     XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XMapWindow(disp, win);
 
-    int major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-    printf("OPENGL: \nVersion: %d.%d\nVendor: %s\nRenderer: %s\n", major, minor, glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+    // Start OpenGL Stuff
+    openGLInit(disp, win, 4, 5);
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -140,6 +138,7 @@ int main(int argc, char** argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+    // Animation loop
     while (1) {
         XNextEvent(disp, &event);
 
@@ -156,6 +155,7 @@ int main(int argc, char** argv) {
         }
     };
 
+    // Teardown
     openGLDestroy(disp);
     XDestroyWindow(disp, win);
     XCloseDisplay(disp);
