@@ -1,7 +1,6 @@
 #ifndef _OPENGL_H_
 #define _OPENGL_H_
 
-#include <X11/Xlib.h>
 #include <GL/gl.h>
 
 // VBOs
@@ -64,9 +63,27 @@ glGetUniformLocationProc glGetUniformLocation;
 typedef GLuint (*glUniform1fProc)(GLuint, GLfloat);
 glUniform1fProc glUniform1f;
 
+#define RENDERER_KEY_PRESS 1
+#define RENDERER_BUTTON_PRESS 2
+#define RENDERER_KEY_LEFT   0xFF01
+#define RENDERER_KEY_RIGHT  0xFF02
+#define RENDERER_KEY_UP     0xFF03
+#define RENDERER_KEY_DOWN   0xFF04
 
-int openGLInit(Display*, Window, int major, int minor);
-void openGLSwapBuffers(Display*, Window);
-void openGLDestroy(Display*);
+typedef struct {
+    unsigned int type;
+    unsigned int key;
+    unsigned int mouseX;
+    unsigned int mouseY;
+    unsigned char mouseButtons;
+} RendererEvent;
+
+// Renderer functions
+void RendererInit();
+void RendererMain();
+void RendererInput();
+
+// Platform functions
+void StopRenderLoop();
 
 #endif

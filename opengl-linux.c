@@ -1,12 +1,50 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <X11/Xlib.h>
+#include <time.h>
+#include <unistd.h>
 #include <GL/glx.h>
 #include "opengl.h"
 
+Display* disp;
+Window win;
+XEvent event;
+XWindowAttributes xWinAtt;
+int running = 0;
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
 
-int openGLInit(Display* disp, Window win, int major, int minor) {
+double getTime() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
+}
+
+void milisleep(float ms) {
+    struct timespec ts;
+    ts.tv_sec = (time_t) (ms / 1000.0);
+    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
+    nanosleep(&ts, 0);
+}
+
+int main(int argc, char const *argv[]) {
+    // X Windows stuff
+    disp = XOpenDisplay(NULL);
+
+    if (disp == NULL) {
+        printf("Unable to connect to X Server\n");
+        return 1;
+    }
+
+    win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, 1000, 1000, 0, 0, 0);
+    
+
+    XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
+    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XMapWindow(disp, win);
+
     int numFBC = 0;
     GLint visualAtt[] = {
         GLX_RENDER_TYPE, GLX_RGBA_BIT, 
@@ -41,9 +79,6 @@ int openGLInit(Display* disp, Window win, int major, int minor) {
         None
     };
 
-    contextAttribs[1] = major;
-    contextAttribs[3] = minor;
-
     ctx = glXCreateContextAttribsARB(disp, *fbc, NULL, True, contextAttribs);
 
     XFree(fbc);
@@ -59,154 +94,192 @@ int openGLInit(Display* disp, Window win, int major, int minor) {
 
     if (!glGenVertexArrays) {
         fprintf(stderr, "Unable to get proc glGenVertexArrays\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glBindVertexArray = (glBindVertexArrayProc) glXGetProcAddress((const GLubyte *) "glBindVertexArray");
 
     if (!glBindVertexArray) {
         fprintf(stderr, "Unable to get proc glBindVertexArray\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glGenBuffers = (glGenBuffersProc) glXGetProcAddress((const GLubyte *) "glGenBuffers");
 
     if (!glGenBuffers) {
         fprintf(stderr, "Unable to get proc glGenBuffers\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glBindBuffer = (glBindBufferProc) glXGetProcAddress((const GLubyte *) "glBindBuffer");
 
     if (!glBindBuffer) {
         fprintf(stderr, "Unable to get proc glBindBuffer\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glBufferData = (glBufferDataProc) glXGetProcAddress((const GLubyte *) "glBufferData");
 
     if (!glBufferData) {
         fprintf(stderr, "Unable to get proc glBufferData\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glVertexAttribPointer = (glVertexAttribPointerProc) glXGetProcAddress((const GLubyte *) "glVertexAttribPointer");
 
     if (!glVertexAttribPointer) {
         fprintf(stderr, "Unable to get proc glVertexAttribPointer\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glEnableVertexAttribArray = (glEnableVertexAttribArrayProc) glXGetProcAddress((const GLubyte *) "glEnableVertexAttribArray");
 
     if (!glEnableVertexAttribArray) {
         fprintf(stderr, "Unable to get proc glEnableVertexAttribArray\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glCreateShader = (glCreateShaderProc) glXGetProcAddress((const GLubyte *) "glCreateShader");
 
     if (!glCreateShader) {
         fprintf(stderr, "Unable to get proc glCreateShader\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glShaderSource = (glShaderSourceProc) glXGetProcAddress((const GLubyte *) "glShaderSource");
 
     if (!glShaderSource) {
         fprintf(stderr, "Unable to get proc glShaderSource\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glCompileShader = (glCompileShaderProc) glXGetProcAddress((const GLubyte *) "glCompileShader");
 
     if (!glCompileShader) {
         fprintf(stderr, "Unable to get proc glCompileShader\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glCreateProgram = (glCreateProgramProc) glXGetProcAddress((const GLubyte *) "glCreateProgram");
 
     if (!glCreateProgram) {
         fprintf(stderr, "Unable to get proc glCreateProgram\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glAttachShader = (glAttachShaderProc) glXGetProcAddress((const GLubyte *) "glAttachShader");
 
     if (!glAttachShader) {
         fprintf(stderr, "Unable to get proc glAttachShader\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glLinkProgram = (glLinkProgramProc) glXGetProcAddress((const GLubyte *) "glLinkProgram");
 
     if (!glLinkProgram) {
         fprintf(stderr, "Unable to get proc glLinkProgram\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glUseProgram = (glUseProgramProc) glXGetProcAddress((const GLubyte *) "glUseProgram");
 
     if (!glUseProgram) {
         fprintf(stderr, "Unable to get proc glUseProgram\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glGetShaderiv = (glGetShaderivProc) glXGetProcAddress((const GLubyte *) "glGetShaderiv");
 
     if (!glGetShaderiv) {
         fprintf(stderr, "Unable to get proc glGetShaderiv\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glGetProgramiv = (glGetProgramivProc) glXGetProcAddress((const GLubyte *) "glGetProgramiv");
 
     if (!glGetProgramiv) {
         fprintf(stderr, "Unable to get proc glGetProgramiv\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glGetUniformLocation = (glGetUniformLocationProc) glXGetProcAddress((const GLubyte *) "glGetUniformLocation");
 
     if (!glGetUniformLocation) {
         fprintf(stderr, "Unable to get proc glGetUniformLocation\n");
-        openGLDestroy(disp);
-        return -1; 
     }
 
     glUniform1f = (glUniform1fProc) glXGetProcAddress((const GLubyte *) "glUniform1f");
 
     if (!glUniform1f) {
         fprintf(stderr, "Unable to get proc glUniform1f\n");
-        openGLDestroy(disp);
-        return -1; 
     }
+
+    RendererInit();
+
+    running = 1;
+    float frameTime = 1000.0 / 60.0; 
+    double startTime, endTime;
+
+    // Animation loop
+    while (1) {
+        startTime = getTime();    
+
+        if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
+            RendererEvent rEvent = {};
+
+
+            if (event.type == Expose) {
+                XGetWindowAttributes(disp, win, &xWinAtt);
+                glViewport(0, 0, xWinAtt.width, xWinAtt.height);
+            }
+
+            if (event.type == KeyPress) {
+                rEvent.type = RENDERER_KEY_PRESS;
+                KeySym key = XLookupKeysym(&event.xkey, 0);
+                
+                int parsed = 0;
+
+                if (key >= XK_space && key <= XK_asciitilde) {
+                    rEvent.key = key;
+                    parsed = 1;
+                }
+
+                if (key == XK_Left) {
+                    rEvent.key = RENDERER_KEY_LEFT;
+                    parsed = 1;
+                }
+
+                if (key == XK_Right) {
+                    rEvent.key = RENDERER_KEY_RIGHT;
+                    parsed = 1;
+                }
+
+                if (key == XK_Up) {
+                    rEvent.key = RENDERER_KEY_UP;
+                    parsed = 1;
+                }
+
+                if (key == XK_Down) {
+                    rEvent.key = RENDERER_KEY_DOWN;
+                    parsed = 1;
+                }
+
+                if (parsed) {
+                    RendererInput(rEvent);
+                }
+            }
+        }
+
+        if (!running) {
+            break;
+        }
+
+        RendererMain(startTime);
+
+        glXSwapBuffers(disp, win);
+
+        endTime = getTime();
+        double elapsed = endTime - startTime;
+        if (elapsed < frameTime) {
+            milisleep(frameTime - elapsed);
+            endTime = getTime();
+        }
+    };
+
+    // Teardown
+    glXMakeCurrent(disp, None, NULL);
+    glXDestroyContext(disp, ctx);
+    XDestroyWindow(disp, win);
+    XCloseDisplay(disp);
+    printf("Done!\n");
 
     return 0;
 }
 
-void openGLSwapBuffers(Display* disp, Window win) {
-    glXSwapBuffers(disp, win);
-}
-
-void openGLDestroy(Display* disp) {
-    glXMakeCurrent(disp, None, NULL);
-    glXDestroyContext(disp, ctx);
+void StopRenderLoop() {
+    running = 0;
 }
