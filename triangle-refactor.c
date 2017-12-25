@@ -1,10 +1,55 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <X11/Xlib.h>
+#include <time.h>
+#include <unistd.h>
 #include "opengl.h"
+
+#define XK_LATIN1
+#include <X11/keysymdef.h>
+
+static Display* disp;
+static Window win;
+static XEvent event;
+static XWindowAttributes xWinAtt;
 
 static GLuint angleLocation;
 
-void RendererInit() {
+double getTime() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
+}
+
+void milisleep(double ms) {
+    struct timespec ts;
+    ts.tv_sec = (time_t) (ms / 1000.0);
+    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
+    nanosleep(&ts, 0);
+}
+
+int main(int argc, char const *argv[]) {
+    // X Windows stuff
+    disp = XOpenDisplay(NULL);
+
+    if (disp == NULL) {
+        printf("Unable to connect to X Server\n");
+        return 1;
+    }
+
+    win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, 2000, 2000, 0, 0, 0);
+    
+
+    XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
+    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XMapWindow(disp, win);
+
+    if (initOpenGL(disp, win)) {
+        fprintf(stderr, "Unable initialize OpenGL!\n");
+        return 1;
+    }
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glClearColor(0.0, 0.0, 0.0, 1.0);
 
     GLuint vertexArray = 0;
@@ -99,39 +144,47 @@ void RendererInit() {
 
     angleLocation = glGetUniformLocation(program, "angle");
 
-    GLuint tex = 0;
-    glGenTextures(1, &tex);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        64,
-        64,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        0
-    );
+    float frameTime = 1000.0 / 60.0; 
+    double startTime, endTime;
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-}
+    // Animation loop
+    while (1) {
+        startTime = getTime();    
 
-void RendererMain(double time) {
-    glUniform1f(angleLocation, time / 1000.0);
+        if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
+            if (event.type == Expose) {
+                XGetWindowAttributes(disp, win, &xWinAtt);
+                glViewport(0, 0, xWinAtt.width, xWinAtt.height);
+            }
 
-void RendererInput(RendererEvent event) {
-    if (event.type == RENDERER_KEY_PRESS) {
-        if (event.key == 'q') {
-            StopRenderLoop();
+            if (event.type == KeyPress) {
+                KeySym key = XLookupKeysym(&event.xkey, 0);
+                
+                if (key == XK_q) {
+                    break;
+                }
+            }
         }
-    }
+
+        glUniform1f(angleLocation, startTime / 1000.0);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        swapBuffers(disp, win);
+
+        endTime = getTime();
+        double elapsed = endTime - startTime;
+        if (elapsed < frameTime) {
+            milisleep(frameTime - elapsed);
+            endTime = getTime();
+        }
+    };
+
+    // Teardown
+    destroyOpenGL(disp);
+    XDestroyWindow(disp, win);
+    XCloseDisplay(disp);
+    printf("Done!\n");
 }
