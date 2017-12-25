@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <X11/Xlib.h>
+#include <time.h>
+#include <unistd.h>
 #include "opengl.h"
 
 Display* disp;
@@ -9,6 +11,19 @@ Window win;
 XEvent event;
 Colormap cmap;
 XWindowAttributes xWinAtt;
+
+double getTime() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
+}
+
+void milisleep(float ms) {
+    struct timespec ts;
+    ts.tv_sec = (time_t) (ms / 1000.0);
+    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
+    nanosleep(&ts, 0);
+}
 
 int main(int argc, char** argv) {
 
@@ -138,21 +153,34 @@ int main(int argc, char** argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+    float frameTime = 1000.0 / 60.0; 
+    double startTime, endTime;
+
     // Animation loop
     while (1) {
-        XNextEvent(disp, &event);
+        startTime = getTime();    
 
-        if (event.type == Expose) {
-            XGetWindowAttributes(disp, win, &xWinAtt);
-            glViewport(0, 0, xWinAtt.width, xWinAtt.height);
-            glClear(GL_COLOR_BUFFER_BIT);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            openGLSwapBuffers(disp, win);
-        }
+        // XNextEvent(disp, &event);
 
-        if (event.type == KeyPress) {
-            break;
+        // if (event.type == Expose) {
+        //     XGetWindowAttributes(disp, win, &xWinAtt);
+        //     glViewport(0, 0, xWinAtt.width, xWinAtt.height);
+        //     glClear(GL_COLOR_BUFFER_BIT);
+        //     glDrawArrays(GL_TRIANGLES, 0, 3);
+        //     openGLSwapBuffers(disp, win);
+        // }
+
+        // if (event.type == KeyPress) {
+        //     break;
+        // }
+        endTime = getTime();
+        double elapsed = endTime - startTime;
+        if (elapsed < frameTime) {
+            milisleep(frameTime - elapsed);
+            endTime = getTime();
         }
+        printf("Elapsed time: %f\n",  endTime - startTime);
+        sleep(1);
     };
 
     // Teardown
