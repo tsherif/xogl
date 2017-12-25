@@ -57,6 +57,13 @@ glGetShaderivProc glGetShaderiv;
 typedef void (*glGetProgramivProc)(GLuint, GLenum, GLint *);
 glGetProgramivProc glGetProgramiv;
 
+// Uniforms
+typedef GLuint (*glGetUniformLocationProc)(GLuint, const GLchar*);
+glGetUniformLocationProc glGetUniformLocation;
+
+typedef GLuint (*glUniform1fProc)(GLuint, GLfloat);
+glUniform1fProc glUniform1f;
+
 
 int openGLInit(Display*, Window, int major, int minor);
 void openGLSwapBuffers(Display*, Window);

@@ -81,10 +81,15 @@ int main(int argc, char** argv) {
     "#version 450\n"
     "layout(location=0) in vec2 position;\n"
     "layout(location=1) in vec3 color;\n"
+    "uniform float angle;\n"
     "out vec3 vColor;\n"
     "void main() {\n"
     "    vColor = color;\n"
-    "    gl_Position = vec4(position, 0.0, 1.0);\n"
+    "    mat2 rotation = mat2(\n"
+    "       sin(angle), -cos(angle),\n"
+    "       cos(angle), sin(angle)\n"
+    "    );"
+    "    gl_Position = vec4(rotation * position, 0.0, 1.0);\n"
     "}\n";
 
     const char* fsSource =
@@ -132,6 +137,8 @@ int main(int argc, char** argv) {
 
     glUseProgram(program);
 
+    GLuint angleLocation = glGetUniformLocation(program, "angle");
+
     GLuint tex = 0;
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);
@@ -160,27 +167,29 @@ int main(int argc, char** argv) {
     while (1) {
         startTime = getTime();    
 
-        // XNextEvent(disp, &event);
+        if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
+            if (event.type == Expose) {
+                XGetWindowAttributes(disp, win, &xWinAtt);
+                glViewport(0, 0, xWinAtt.width, xWinAtt.height);
+            }
 
-        // if (event.type == Expose) {
-        //     XGetWindowAttributes(disp, win, &xWinAtt);
-        //     glViewport(0, 0, xWinAtt.width, xWinAtt.height);
-        //     glClear(GL_COLOR_BUFFER_BIT);
-        //     glDrawArrays(GL_TRIANGLES, 0, 3);
-        //     openGLSwapBuffers(disp, win);
-        // }
+            if (event.type == KeyPress) {
+                break;
+            }
+        }
 
-        // if (event.type == KeyPress) {
-        //     break;
-        // }
+        glUniform1f(angleLocation, startTime / 1000.0);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        openGLSwapBuffers(disp, win);
+
         endTime = getTime();
         double elapsed = endTime - startTime;
         if (elapsed < frameTime) {
             milisleep(frameTime - elapsed);
             endTime = getTime();
         }
-        printf("Elapsed time: %f\n",  endTime - startTime);
-        sleep(1);
     };
 
     // Teardown

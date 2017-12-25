@@ -183,6 +183,22 @@ int openGLInit(Display* disp, Window win, int major, int minor) {
         return -1; 
     }
 
+    glGetUniformLocation = (glGetUniformLocationProc) glXGetProcAddress((const GLubyte *) "glGetUniformLocation");
+
+    if (!glGetUniformLocation) {
+        fprintf(stderr, "Unable to get proc glGetUniformLocation\n");
+        openGLDestroy(disp);
+        return -1; 
+    }
+
+    glUniform1f = (glUniform1fProc) glXGetProcAddress((const GLubyte *) "glUniform1f");
+
+    if (!glUniform1f) {
+        fprintf(stderr, "Unable to get proc glUniform1f\n");
+        openGLDestroy(disp);
+        return -1; 
+    }
+
     return 0;
 }
 
