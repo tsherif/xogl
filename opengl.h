@@ -47,7 +47,7 @@ glLinkProgramProc glLinkProgram;
 typedef void (*glUseProgramProc)(GLuint program); 
 glUseProgramProc glUseProgram;
 
-typedef GLuint (*glCreateProgramProc)(); 
+typedef GLuint (*glCreateProgramProc)(void); 
 glCreateProgramProc glCreateProgram;
 
 typedef void (*glGetShaderivProc)(GLuint, GLenum, GLint *);
@@ -175,11 +175,11 @@ typedef struct {
 } RendererEvent;
 
 // Renderer functions
-void RendererInit();
-void RendererMain();
-void RendererInput();
+void RendererInit(void);
+void RendererMain(double time);
+void RendererInput(RendererEvent);
 
 // Platform functions
-void StopRenderLoop();
+void StopRenderLoop(void);
 
 #endif
