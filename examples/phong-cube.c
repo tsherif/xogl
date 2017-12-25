@@ -3,14 +3,14 @@
 #include <X11/Xlib.h>
 #include <time.h>
 #include <unistd.h>
-#include "opengl.h"
+#include "../src/linux-opengl.h"
 #include "math/mat4.h"
 
 #define XK_LATIN1
 #include <X11/keysymdef.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "lib/stb_image.h"
 
 #define PI 3.14159
 
@@ -336,7 +336,7 @@ int main(int argc, char const *argv[]) {
     texLocation = glGetUniformLocation(program, "tex");
 
     int img_width, img_height, bytes_per_pixel;
-    unsigned char* image = stbi_load("opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
+    unsigned char* image = stbi_load("img/opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
 
     if (!image) {
         printf("No image!\n");

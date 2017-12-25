@@ -3,7 +3,7 @@
 #include <X11/Xlib.h>
 #include <time.h>
 #include <unistd.h>
-#include "opengl.h"
+#include "../src/linux-opengl.h"
 
 #define XK_LATIN1
 #include <X11/keysymdef.h>

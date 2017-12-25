@@ -3,7 +3,7 @@
 #include <string.h>
 #include <X11/Xlib.h>
 #include <GL/glx.h>
-#include "opengl.h"
+#include "linux-opengl.h"
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
@@ -30,7 +30,7 @@ int initOpenGL(Display* disp, Window win) {
         return -1;        
     }
 
-    glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc) glXGetProcAddress("glXCreateContextAttribsARB");
+    glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc) glXGetProcAddress((const GLubyte *) "glXCreateContextAttribsARB");
 
     if (!glXCreateContextAttribsARB) {
         fprintf(stderr, "Unable to get proc glXCreateContextAttribsARB\n");
@@ -57,7 +57,7 @@ int initOpenGL(Display* disp, Window win) {
 
     glXMakeCurrent(disp, win, ctx);
 
-    glGenVertexArrays = (glGenVertexArraysProc) glXGetProcAddress("glGenVertexArrays");
+    glGenVertexArrays = (glGenVertexArraysProc) glXGetProcAddress((const GLubyte *) "glGenVertexArrays");
 
     if (!glGenVertexArrays) {
         fprintf(stderr, "Unable to get proc glGenVertexArrays\n");
