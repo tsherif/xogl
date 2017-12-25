@@ -7,11 +7,11 @@
 #include <GL/glx.h>
 #include "opengl.h"
 
-Display* disp;
-Window win;
-XEvent event;
-XWindowAttributes xWinAtt;
-int running = 0;
+static Display* disp;
+static Window win;
+static XEvent event;
+static XWindowAttributes xWinAtt;
+static int running = 0;
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
@@ -22,7 +22,7 @@ double getTime() {
     return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
 }
 
-void milisleep(float ms) {
+void milisleep(double ms) {
     struct timespec ts;
     ts.tv_sec = (time_t) (ms / 1000.0);
     ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
@@ -53,6 +53,8 @@ int main(int argc, char const *argv[]) {
         GLX_RED_SIZE, 1,
         GLX_GREEN_SIZE, 1,
         GLX_BLUE_SIZE, 1,
+        GLX_DEPTH_SIZE, 1,
+        GLX_STENCIL_SIZE, 1,
         None
     };
 
@@ -196,6 +198,198 @@ int main(int argc, char const *argv[]) {
 
     if (!glUniform1f) {
         fprintf(stderr, "Unable to get proc glUniform1f\n");
+    }
+
+    glUniform2f = (glUniform2fProc) glXGetProcAddress((const GLubyte *) "glUniform2f");
+
+    if (!glUniform2f) {
+        fprintf(stderr, "Unable to get proc glUniform2f\n");
+    }
+
+    glUniform3f = (glUniform3fProc) glXGetProcAddress((const GLubyte *) "glUniform3f");
+
+    if (!glUniform3f) {
+        fprintf(stderr, "Unable to get proc glUniform3f\n");
+    }
+
+    glUniform4f = (glUniform4fProc) glXGetProcAddress((const GLubyte *) "glUniform4f");
+
+    if (!glUniform4f) {
+        fprintf(stderr, "Unable to get proc glUniform4f\n");
+    }
+
+    glUniform1i = (glUniform1iProc) glXGetProcAddress((const GLubyte *) "glUniform1i");
+
+    if (!glUniform1i) {
+        fprintf(stderr, "Unable to get proc glUniform1i\n");
+    }
+
+    glUniform2i = (glUniform2iProc) glXGetProcAddress((const GLubyte *) "glUniform2i");
+
+    if (!glUniform2i) {
+        fprintf(stderr, "Unable to get proc glUniform2i\n");
+    }
+
+    glUniform3i = (glUniform3iProc) glXGetProcAddress((const GLubyte *) "glUniform3i");
+
+    if (!glUniform3i) {
+        fprintf(stderr, "Unable to get proc glUniform3i\n");
+    }
+
+    glUniform4i = (glUniform4iProc) glXGetProcAddress((const GLubyte *) "glUniform4i");
+
+    if (!glUniform4i) {
+        fprintf(stderr, "Unable to get proc glUniform4i\n");
+    }
+
+    glUniform1ui = (glUniform1uiProc) glXGetProcAddress((const GLubyte *) "glUniform1ui");
+
+    if (!glUniform1ui) {
+        fprintf(stderr, "Unable to get proc glUniform1ui\n");
+    }
+
+    glUniform2ui = (glUniform2uiProc) glXGetProcAddress((const GLubyte *) "glUniform2ui");
+
+    if (!glUniform2ui) {
+        fprintf(stderr, "Unable to get proc glUniform2ui\n");
+    }
+
+    glUniform3ui = (glUniform3uiProc) glXGetProcAddress((const GLubyte *) "glUniform3ui");
+
+    if (!glUniform3ui) {
+        fprintf(stderr, "Unable to get proc glUniform3ui\n");
+    }
+
+    glUniform4ui = (glUniform4uiProc) glXGetProcAddress((const GLubyte *) "glUniform4ui");
+
+    if (!glUniform4ui) {
+        fprintf(stderr, "Unable to get proc glUniform4ui\n");
+    }
+
+    glUniform1fv = (glUniform1fvProc) glXGetProcAddress((const GLubyte *) "glUniform1fv");
+
+    if (!glUniform1fv) {
+        fprintf(stderr, "Unable to get proc glUniform1fv\n");
+    }
+
+    glUniform2fv = (glUniform2fvProc) glXGetProcAddress((const GLubyte *) "glUniform2fv");
+
+    if (!glUniform2fv) {
+        fprintf(stderr, "Unable to get proc glUniform2fv\n");
+    }
+
+    glUniform3fv = (glUniform3fvProc) glXGetProcAddress((const GLubyte *) "glUniform3fv");
+
+    if (!glUniform3fv) {
+        fprintf(stderr, "Unable to get proc glUniform3fv\n");
+    }
+
+    glUniform4fv = (glUniform4fvProc) glXGetProcAddress((const GLubyte *) "glUniform4fv");
+
+    if (!glUniform4fv) {
+        fprintf(stderr, "Unable to get proc glUniform4fv\n");
+    }
+
+    glUniform1iv = (glUniform1ivProc) glXGetProcAddress((const GLubyte *) "glUniform1iv");
+
+    if (!glUniform1iv) {
+        fprintf(stderr, "Unable to get proc glUniform1iv\n");
+    }
+
+    glUniform2iv = (glUniform2ivProc) glXGetProcAddress((const GLubyte *) "glUniform2iv");
+
+    if (!glUniform2iv) {
+        fprintf(stderr, "Unable to get proc glUniform2iv\n");
+    }
+
+    glUniform3iv = (glUniform3ivProc) glXGetProcAddress((const GLubyte *) "glUniform3iv");
+
+    if (!glUniform3iv) {
+        fprintf(stderr, "Unable to get proc glUniform3iv\n");
+    }
+
+    glUniform4iv = (glUniform4ivProc) glXGetProcAddress((const GLubyte *) "glUniform4iv");
+
+    if (!glUniform4iv) {
+        fprintf(stderr, "Unable to get proc glUniform4iv\n");
+    }
+
+    glUniform1uiv = (glUniform1uivProc) glXGetProcAddress((const GLubyte *) "glUniform1uiv");
+
+    if (!glUniform1uiv) {
+        fprintf(stderr, "Unable to get proc glUniform1uiv\n");
+    }
+
+    glUniform2uiv = (glUniform2uivProc) glXGetProcAddress((const GLubyte *) "glUniform2uiv");
+
+    if (!glUniform2uiv) {
+        fprintf(stderr, "Unable to get proc glUniform2uiv\n");
+    }
+
+    glUniform3uiv = (glUniform3uivProc) glXGetProcAddress((const GLubyte *) "glUniform3uiv");
+
+    if (!glUniform3uiv) {
+        fprintf(stderr, "Unable to get proc glUniform3uiv\n");
+    }
+
+    glUniform4uiv = (glUniform4uivProc) glXGetProcAddress((const GLubyte *) "glUniform4uiv");
+
+    if (!glUniform4uiv) {
+        fprintf(stderr, "Unable to get proc glUniform4uiv\n");
+    }
+
+    glUniformMatrix2fv = (glUniformMatrix2fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix2fv");
+
+    if (!glUniformMatrix2fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix2fv\n");
+    }
+
+    glUniformMatrix3fv = (glUniformMatrix3fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix3fv");
+
+    if (!glUniformMatrix3fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix3fv\n");
+    }
+
+    glUniformMatrix4fv = (glUniformMatrix4fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix4fv");
+
+    if (!glUniformMatrix4fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix4fv\n");
+    }
+
+    glUniformMatrix2x3fv = (glUniformMatrix2x3fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix2x3fv");
+
+    if (!glUniformMatrix2x3fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix2x3fv\n");
+    }
+
+    glUniformMatrix3x2fv = (glUniformMatrix3x2fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix3x2fv");
+
+    if (!glUniformMatrix3x2fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix3x2fv\n");
+    }
+
+    glUniformMatrix2x4fv = (glUniformMatrix2x4fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix2x4fv");
+
+    if (!glUniformMatrix2x4fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix2x4fv\n");
+    }
+
+    glUniformMatrix4x2fv = (glUniformMatrix4x2fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix4x2fv");
+
+    if (!glUniformMatrix4x2fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix4x2fv\n");
+    }
+
+    glUniformMatrix3x4fv = (glUniformMatrix3x4fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix3x4fv");
+
+    if (!glUniformMatrix3x4fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix3x4fv\n");
+    }
+
+    glUniformMatrix4x3fv = (glUniformMatrix4x3fvProc) glXGetProcAddress((const GLubyte *) "glUniformMatrix4x3fv");
+
+    if (!glUniformMatrix4x3fv) {
+        fprintf(stderr, "Unable to get proc glUniformMatrix4x3fv\n");
     }
 
     RendererInit();
