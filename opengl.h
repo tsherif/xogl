@@ -159,27 +159,8 @@ glUniformMatrix3x4fvProc glUniformMatrix3x4fv;
 typedef void (*glUniformMatrix4x3fvProc)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 glUniformMatrix4x3fvProc glUniformMatrix4x3fv;
 
-#define RENDERER_KEY_PRESS 1
-#define RENDERER_BUTTON_PRESS 2
-#define RENDERER_KEY_LEFT   0xFF01
-#define RENDERER_KEY_RIGHT  0xFF02
-#define RENDERER_KEY_UP     0xFF03
-#define RENDERER_KEY_DOWN   0xFF04
 
-typedef struct {
-    unsigned int type;
-    unsigned int key;
-    unsigned int mouseX;
-    unsigned int mouseY;
-    unsigned char mouseButtons;
-} RendererEvent;
-
-// Renderer functions
-void RendererInit(void);
-void RendererMain(double time);
-void RendererInput(RendererEvent);
-
-// Platform functions
-void StopRenderLoop(void);
-
+int initOpenGL(Display* disp, Window win);
+void destroyOpenGL(Display* disp);
+void swapBuffers(Display* disp, Window win);
 #endif

@@ -1,12 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <X11/Xlib.h>
+#include <time.h>
+#include <unistd.h>
 #include "opengl.h"
 #include "math/mat4.h"
+
+#define XK_LATIN1
+#include <X11/keysymdef.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #define PI 3.14159
+
+static Display* disp;
+static Window win;
+static XEvent event;
+static XWindowAttributes xWinAtt;
 
 static GLuint modelLocation;
 static GLuint viewProjLocation;
@@ -15,7 +26,46 @@ static GLuint lightPositionLocation;
 static GLuint texLocation;
 static int numVertices;
 
-void RendererInit() {
+static mat4 modelMatrix;
+static mat4 rotateXMatrix;
+static mat4 rotateYMatrix;
+static float xRotation = 0.0f;
+static float yRotation = 0.0f;
+
+double getTime() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
+}
+
+void milisleep(double ms) {
+    struct timespec ts;
+    ts.tv_sec = (time_t) (ms / 1000.0);
+    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
+    nanosleep(&ts, 0);
+}
+
+int main(int argc, char const *argv[]) {
+    // X Windows stuff
+    disp = XOpenDisplay(NULL);
+
+    if (disp == NULL) {
+        printf("Unable to connect to X Server\n");
+        return 1;
+    }
+
+    win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, 2000, 2000, 0, 0, 0);
+    
+
+    XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
+    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XMapWindow(disp, win);
+
+    if (initOpenGL(disp, win)) {
+        fprintf(stderr, "Unable initialize OpenGL!\n");
+        return 1;
+    }
+
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glEnable(GL_DEPTH_TEST);
 
@@ -121,12 +171,12 @@ void RendererInit() {
 
     float normalData[] = {
         // front
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1,
+        0, 0, -1, 
+        0, 0, -1, 
+        0, 0, -1, 
+        0, 0, -1, 
+        0, 0, -1, 
+        0, 0, -1,
 
         // right
         1, 0, 0, 
@@ -137,12 +187,12 @@ void RendererInit() {
         1, 0, 0,
 
         // back 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
+        0, 0, 1, 
+        0, 0, 1, 
+        0, 0, 1, 
+        0, 0, 1, 
+        0, 0, 1, 
+        0, 0, 1, 
 
         // left
         -1, 0, 0, 
@@ -186,14 +236,14 @@ void RendererInit() {
     glGenBuffers(1, &uvs);
     glBindBuffer(GL_ARRAY_BUFFER, uvs);
     glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_TRUE, 0, NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
 
     GLuint normals = 0;
     glGenBuffers(1, &normals);
     glBindBuffer(GL_ARRAY_BUFFER, normals);
     glBufferData(GL_ARRAY_BUFFER, sizeof(normalData), normalData, GL_STATIC_DRAW);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, 0, NULL);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(2);
 
     const char* vsSource =
@@ -306,11 +356,11 @@ void RendererInit() {
 
     glUniform1i(texLocation, 0);
 
-    float eyePosition[] = { 1.5f, 1.5f, 1.5f };
-    float lookPosition[] = { 0.0f, 0.0f, 0.0f };
-    float upVector[] = { 0.0f, 1.0f, 0.0f };
+    vec3 eyePosition = { 1.5f, 1.5f, 1.5f };
+    vec3 lookPosition = { 0.0f, 0.0f, 0.0f };
+    vec3 upVector = { 0.0f, 1.0f, 0.0f };
 
-    float lightPosition[] = {1.5f, 1.5f, 1.0f};
+    vec3 lightPosition = { 1.5f, 1.5f, 1.0f };
 
     mat4 projMatrix;
     mat4 viewMatrix;
@@ -320,28 +370,56 @@ void RendererInit() {
     mat4_lookAt(viewMatrix, eyePosition, lookPosition, upVector);
     mat4_mult(viewProjMatrix, projMatrix, viewMatrix);
 
-    mat4 modelMatrix = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
+    glUniform3fv(eyePositionLocation, 1, eyePosition);
+    glUniform3fv(lightPositionLocation, 1, lightPosition);
+    glUniformMatrix4fv(viewProjLocation, 1, GL_FALSE, viewProjMatrix);
+
+    float frameTime = 1000.0 / 60.0; 
+    double startTime, endTime;
+
+    // Animation loop
+    while (1) {
+        startTime = getTime();    
+
+        if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
+
+            if (event.type == Expose) {
+                XGetWindowAttributes(disp, win, &xWinAtt);
+                glViewport(0, 0, xWinAtt.width, xWinAtt.height);
+            }
+
+            if (event.type == KeyPress) {
+                KeySym key = XLookupKeysym(&event.xkey, 0);
+                
+                if (key == XK_q) {
+                    break;
+                }
+            }
+        }
+
+        xRotation += 0.001;
+        yRotation += 0.002;
+        mat4_rotationX(rotateXMatrix, xRotation);
+        mat4_rotationY(rotateYMatrix, yRotation);
+        mat4_mult(modelMatrix, rotateXMatrix, rotateYMatrix);
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMatrix);    
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, numVertices);
+
+        swapBuffers(disp, win);
+
+        endTime = getTime();
+        double elapsed = endTime - startTime;
+        if (elapsed < frameTime) {
+            milisleep(frameTime - elapsed);
+            endTime = getTime();
+        }
     };
 
-    glUniform3fv(eyePositionLocation, 1, (GLfloat*) &eyePosition);
-    glUniform3fv(lightPositionLocation, 1, lightPosition);
-    glUniformMatrix4fv(viewProjLocation, 1, GL_FALSE, (GLfloat*) &viewProjMatrix);
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, (GLfloat*) &modelMatrix);
-}
-
-void RendererMain(double time) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, numVertices);
-}
-
-void RendererInput(RendererEvent event) {
-    if (event.type == RENDERER_KEY_PRESS) {
-        if (event.key == 'q') {
-            StopRenderLoop();
-        }
-    }
+    // Teardown
+    destroyOpenGL(disp);
+    XDestroyWindow(disp, win);
+    XCloseDisplay(disp);
+    printf("Done!\n");
 }

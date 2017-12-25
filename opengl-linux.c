@@ -2,49 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <X11/Xlib.h>
-#include <time.h>
-#include <unistd.h>
 #include <GL/glx.h>
 #include "opengl.h"
-
-static Display* disp;
-static Window win;
-static XEvent event;
-static XWindowAttributes xWinAtt;
-static int running = 0;
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
 
-double getTime() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
-}
-
-void milisleep(double ms) {
-    struct timespec ts;
-    ts.tv_sec = (time_t) (ms / 1000.0);
-    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
-    nanosleep(&ts, 0);
-}
-
-int main(int argc, char const *argv[]) {
-    // X Windows stuff
-    disp = XOpenDisplay(NULL);
-
-    if (disp == NULL) {
-        printf("Unable to connect to X Server\n");
-        return 1;
-    }
-
-    win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, 1000, 1000, 0, 0, 0);
+int initOpenGL(Display* disp, Window win) {
     
-
-    XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
-    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
-    XMapWindow(disp, win);
-
     int numFBC = 0;
     GLint visualAtt[] = {
         GLX_RENDER_TYPE, GLX_RGBA_BIT, 
@@ -392,88 +357,14 @@ int main(int argc, char const *argv[]) {
         fprintf(stderr, "Unable to get proc glUniformMatrix4x3fv\n");
     }
 
-    RendererInit();
-
-    running = 1;
-    float frameTime = 1000.0 / 60.0; 
-    double startTime, endTime;
-
-    // Animation loop
-    while (1) {
-        startTime = getTime();    
-
-        if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
-            RendererEvent rEvent = {};
-
-
-            if (event.type == Expose) {
-                XGetWindowAttributes(disp, win, &xWinAtt);
-                glViewport(0, 0, xWinAtt.width, xWinAtt.height);
-            }
-
-            if (event.type == KeyPress) {
-                rEvent.type = RENDERER_KEY_PRESS;
-                KeySym key = XLookupKeysym(&event.xkey, 0);
-                
-                int parsed = 0;
-
-                if (key >= XK_space && key <= XK_asciitilde) {
-                    rEvent.key = key;
-                    parsed = 1;
-                }
-
-                if (key == XK_Left) {
-                    rEvent.key = RENDERER_KEY_LEFT;
-                    parsed = 1;
-                }
-
-                if (key == XK_Right) {
-                    rEvent.key = RENDERER_KEY_RIGHT;
-                    parsed = 1;
-                }
-
-                if (key == XK_Up) {
-                    rEvent.key = RENDERER_KEY_UP;
-                    parsed = 1;
-                }
-
-                if (key == XK_Down) {
-                    rEvent.key = RENDERER_KEY_DOWN;
-                    parsed = 1;
-                }
-
-                if (parsed) {
-                    RendererInput(rEvent);
-                }
-            }
-        }
-
-        if (!running) {
-            break;
-        }
-
-        RendererMain(startTime);
-
-        glXSwapBuffers(disp, win);
-
-        endTime = getTime();
-        double elapsed = endTime - startTime;
-        if (elapsed < frameTime) {
-            milisleep(frameTime - elapsed);
-            endTime = getTime();
-        }
-    };
-
-    // Teardown
-    glXMakeCurrent(disp, None, NULL);
-    glXDestroyContext(disp, ctx);
-    XDestroyWindow(disp, win);
-    XCloseDisplay(disp);
-    printf("Done!\n");
-
     return 0;
 }
 
-void StopRenderLoop() {
-    running = 0;
+void swapBuffers(Display* disp, Window win) {
+    glXSwapBuffers(disp, win);
+}
+
+void destroyOpenGL(Display* disp) {
+    glXMakeCurrent(disp, None, NULL);
+    glXDestroyContext(disp, ctx);
 }
