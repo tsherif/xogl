@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "opengl.h"
+#include "math/mat4.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#define PI 3.14159
 
 static GLuint modelLocation;
 static GLuint viewProjLocation;
@@ -27,42 +30,42 @@ void RendererInit() {
 
         //right
         0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
         0.5f, 0.5f, -0.5f,
         0.5f, 0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
 
         //back
-        0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
 
         //left
+        -0.5f, -0.5f, 0.5f,
         -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
         -0.5f, -0.5f, -0.5f,
         -0.5f, 0.5f, -0.5f,
 
         //top
         -0.5f, 0.5f, -0.5f,
         0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
         0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
 
         //bottom
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
         -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
         -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
         0.5f, -0.5f, -0.5f
     };
 
@@ -209,7 +212,7 @@ void RendererInit() {
     "void main() {\n"
         "vec4 worldPosition = uModel * position;\n"
         "vPosition = worldPosition.xyz;\n"
-        "vUV = vec2(uv.x, 1.0 - uv.y);\n"
+        "vUV = 1.0 - uv;\n"
         "vNormal = (uModel * normal).xyz;\n"
         "gl_Position = uViewProj * worldPosition;\n"
     "};\n";
@@ -217,8 +220,8 @@ void RendererInit() {
     const char* fsSource =
     "#version 450\n"
 
-    "uniform vec4 uEyePosition;\n"
-    "uniform vec4 uLightPosition;\n"
+    "uniform vec3 uEyePosition;\n"
+    "uniform vec3 uLightPosition;\n"
     "uniform sampler2D tex;\n"
     
     "in vec3 vPosition;\n"
@@ -230,14 +233,13 @@ void RendererInit() {
         "vec3 color = texture(tex, vUV).rgb;\n"
 
         "vec3 normal = normalize(vNormal);\n"
-        "vec3 eyeVec = normalize(uEyePosition.xyz - vPosition);\n"
-        "vec3 incidentVec = normalize(vPosition - uLightPosition.xyz);\n"
+        "vec3 eyeVec = normalize(uEyePosition - vPosition);\n"
+        "vec3 incidentVec = normalize(vPosition - uLightPosition);\n"
         "vec3 lightVec = -incidentVec;\n"
         "float diffuse = max(dot(lightVec, normal), 0.0);\n"
         "float highlight = pow(max(dot(eyeVec, reflect(incidentVec, normal)), 0.0), 100.0);\n"
         "float ambient = 0.1;\n"
         "fragColor = vec4(color * (diffuse + highlight + ambient), 1.0);\n"
-        "fragColor.rgb = color;\n"
     "}\n";
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -304,30 +306,31 @@ void RendererInit() {
 
     glUniform1i(texLocation, 0);
 
-    float eyePosition[] = { 1.0f, 1.0f, 1.0f };
+    float eyePosition[] = { 1.5f, 1.5f, 1.5f };
     float lookPosition[] = { 0.0f, 0.0f, 0.0f };
     float upVector[] = { 0.0f, 1.0f, 0.0f };
 
-    float lightPosition[] = {1.0f, 1.0f, 0.5f};
+    float lightPosition[] = {1.5f, 1.5f, 1.0f};
 
-    float viewProjMatrix[] = {
+    mat4 projMatrix;
+    mat4 viewMatrix;
+    mat4 viewProjMatrix;
+
+    mat4_perspective(projMatrix, PI / 4.0f, 1.0, 0.1, 10.0);
+    mat4_lookAt(viewMatrix, eyePosition, lookPosition, upVector);
+    mat4_mult(viewProjMatrix, projMatrix, viewMatrix);
+
+    mat4 modelMatrix = {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
 
-    float modelMatrix[] = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    glUniform3fv(eyePositionLocation, 1, eyePosition);
+    glUniform3fv(eyePositionLocation, 1, (GLfloat*) &eyePosition);
     glUniform3fv(lightPositionLocation, 1, lightPosition);
-    glUniformMatrix4fv(viewProjLocation, 1, GL_FALSE, viewProjMatrix);
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMatrix);
+    glUniformMatrix4fv(viewProjLocation, 1, GL_FALSE, (GLfloat*) &viewProjMatrix);
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, (GLfloat*) &modelMatrix);
 }
 
 void RendererMain(double time) {
