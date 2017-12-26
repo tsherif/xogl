@@ -100,7 +100,7 @@ XOGL_DECLARE_PROC(void, glUniformMatrix3x4fv, GLint location, GLsizei count, GLb
 XOGL_DECLARE_PROC(void, glUniformMatrix4x3fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
 /**
-    @brief Initialize OpenGL context for given window.
+    @brief Initialize OpenGL context for given window and load OpenGL functions.
     @param disp Open X11 display connection.
     @param win X11 window to get the OpenGL context from.
     @param major OpenGL major version number.
