@@ -365,6 +365,8 @@ int main(int argc, char const *argv[]) {
 
     glUniform1i(texLocation, 0);
 
+    free(image);
+
     vec3 eyePosition = { 1.5f, 1.5f, 1.5f };
     vec3 lookPosition = { 0.0f, 0.0f, 0.0f };
     vec3 upVector = { 0.0f, 1.0f, 0.0f };
