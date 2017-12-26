@@ -1,11 +1,59 @@
 #include <math.h>
-#include <GL/gl.h>
-#include "vec3.h"
-#include "mat4.h"
+#include "logl-math.h"
 
-static mat4 temp;
+static vec3 tempVec3;
+static mat4 tempMat4;
 
-void mat4_identity(mat4 m) {
+void math_setVec3(vec3 v, float x, float y, float z) {
+    v[0] = x;
+    v[1] = y;
+    v[2] = z;
+}
+
+float math_dotVec3(vec3 v1, vec3 v2) {
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
+float math_lengthVec3(vec3 v) {
+    return sqrt(math_dotVec3(v, v));
+}
+
+void math_scaleVec3(vec3 v, float s) {
+    v[0] *= s;
+    v[1] *= s;
+    v[2] *= s;
+}
+
+void math_normalizeVec3(vec3 v) {
+    float l = math_lengthVec3(v);
+    v[0] /= l;
+    v[1] /= l;
+    v[2] /= l;
+}
+
+void math_addVec3(vec3 out, vec3 v1, vec3 v2) {
+    out[0] = v1[0] + v2[0];
+    out[1] = v1[1] + v2[1];
+    out[2] = v1[2] + v2[2];
+}
+
+void math_subVec3(vec3 out, vec3 v1, vec3 v2) {
+    out[0] = v1[0] - v2[0];
+    out[1] = v1[1] - v2[1];
+    out[2] = v1[2] - v2[2];
+}
+
+void math_crossVec3(vec3 out, vec3 v1, vec3 v2) {
+    tempVec3[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    tempVec3[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    tempVec3[2] = v1[0] * v2[1] - v1[1] * v2[0];
+
+    out[0] = tempVec3[0];
+    out[1] = tempVec3[1];
+    out[2] = tempVec3[2];
+}
+
+void math_identityMat4(mat4 m) {
     m[0]  = 1;
     m[1]  = 0;
     m[2]  = 0;
@@ -27,7 +75,7 @@ void mat4_identity(mat4 m) {
     m[15] = 1;
 }
 
-void mat4_translation(mat4 m, GLfloat x, GLfloat y, GLfloat z) {
+void math_translationMat4(mat4 m, float x, float y, float z) {
     m[0]  = 1;
     m[1]  = 0;
     m[2]  = 0;
@@ -49,7 +97,7 @@ void mat4_translation(mat4 m, GLfloat x, GLfloat y, GLfloat z) {
     m[15] = 1;
 }
 
-void mat4_scaling(mat4 m, GLfloat x, GLfloat y, GLfloat z) {
+void math_scalingMat4(mat4 m, float x, float y, float z) {
     m[0]  = x;
     m[1]  = 0;
     m[2]  = 0;
@@ -71,9 +119,9 @@ void mat4_scaling(mat4 m, GLfloat x, GLfloat y, GLfloat z) {
     m[15] = 1;
 }
 
-void mat4_rotationX(mat4 m, GLfloat theta) {
-    GLfloat sine = sin(theta);
-    GLfloat cosine = cos(theta);
+void math_rotationXMat4(mat4 m, float theta) {
+    float sine = sin(theta);
+    float cosine = cos(theta);
 
     m[0]  = 1;
     m[1]  = 0;
@@ -96,9 +144,9 @@ void mat4_rotationX(mat4 m, GLfloat theta) {
     m[15] = 1;
 }
 
-void mat4_rotationY(mat4 m, GLfloat theta) {
-    GLfloat sine = sin(theta);
-    GLfloat cosine = cos(theta);
+void math_rotationYMat4(mat4 m, float theta) {
+    float sine = sin(theta);
+    float cosine = cos(theta);
 
     m[0]  = cosine;
     m[1]  = 0;
@@ -121,9 +169,9 @@ void mat4_rotationY(mat4 m, GLfloat theta) {
     m[15] = 1;
 }
 
-void mat4_rotationZ(mat4 m, GLfloat theta) {
-    GLfloat sine = sin(theta);
-    GLfloat cosine = cos(theta);
+void math_rotationZMat4(mat4 m, float theta) {
+    float sine = sin(theta);
+    float cosine = cos(theta);
 
     m[0]  = cosine;
     m[1]  = sine;
@@ -146,10 +194,10 @@ void mat4_rotationZ(mat4 m, GLfloat theta) {
     m[15] = 1;
 }
 
-void mat4_mult(mat4 result, mat4 m1, mat4 m2) {
+void math_multiplyMat4(mat4 result, mat4 m1, mat4 m2) {
     int row, col, i;
     int result_index, m1_index, m2_index;
-    GLfloat val;
+    float val;
 
     for (col = 0; col < 4; col++) {
         for (row = 0; row < 4; row++) {
@@ -163,38 +211,26 @@ void mat4_mult(mat4 result, mat4 m1, mat4 m2) {
                 val += m1[m1_index] * m2[m2_index];
             }
 
-            temp[result_index] = val;
+            tempMat4[result_index] = val;
         }
     }
 
     for (i = 0; i < 16; i++) {
-        result[i] = temp[i];
+        result[i] = tempMat4[i];
     }
 }
 
-void mat4_multVec3(vec3 out, mat4 m, vec3 v) {
-    temp[0] = v[0] * m[0] + v[1] * m[4] + v[2] * m[8]  + m[12];
-    temp[1] = v[0] * m[1] + v[1] * m[5] + v[2] * m[9]  + m[13];
-    temp[2] = v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + m[14];
+void math_mat4TransformVec3(vec3 out, mat4 m, vec3 v) {
+    tempVec3[0] = v[0] * m[0] + v[1] * m[4] + v[2] * m[8]  + m[12];
+    tempVec3[1] = v[0] * m[1] + v[1] * m[5] + v[2] * m[9]  + m[13];
+    tempVec3[2] = v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + m[14];
 
-    out[0] = temp[0];
-    out[1] = temp[1];
-    out[2] = temp[2];
+    out[0] = tempVec3[0];
+    out[1] = tempVec3[1];
+    out[2] = tempVec3[2];
 }
 
-void mat4_multVec4(GLfloat* out, mat4 m, GLfloat* v) {
-    temp[0] = v[0] * m[0] + v[1] * m[4] + v[2] * m[8]  + v[3] * m[12];
-    temp[1] = v[0] * m[1] + v[1] * m[5] + v[2] * m[9]  + v[3] * m[13];
-    temp[2] = v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + v[3] * m[14];
-    temp[3] = v[0] * m[3] + v[1] * m[7] + v[2] * m[11] + v[3] * m[15];
-
-    out[0] = temp[0];
-    out[1] = temp[1];
-    out[2] = temp[2];
-    out[3] = temp[3];
-}
-
-void mat4_transpose(mat4 result, mat4 m) {
+void math_transposeMat4(mat4 result, mat4 m) {
     int row, col;
     int index1, index2;
 
@@ -210,23 +246,23 @@ void mat4_transpose(mat4 result, mat4 m) {
     }
 }
 
-GLfloat mat4_det(mat4 m) {
-    GLfloat m0 = m[0];
-    GLfloat m1 = m[1];
-    GLfloat m2 = m[2];
-    GLfloat m3 = m[3];
-    GLfloat m4 = m[4];
-    GLfloat m5 = m[5];
-    GLfloat m6 = m[6];
-    GLfloat m7 = m[7];
-    GLfloat m8 = m[8];
-    GLfloat m9 = m[9];
-    GLfloat m10 = m[10];
-    GLfloat m11 = m[11];
-    GLfloat m12 = m[12];
-    GLfloat m13 = m[13];
-    GLfloat m14 = m[14];
-    GLfloat m15 = m[15];
+float math_detMat4(mat4 m) {
+    float m0 = m[0];
+    float m1 = m[1];
+    float m2 = m[2];
+    float m3 = m[3];
+    float m4 = m[4];
+    float m5 = m[5];
+    float m6 = m[6];
+    float m7 = m[7];
+    float m8 = m[8];
+    float m9 = m[9];
+    float m10 = m[10];
+    float m11 = m[11];
+    float m12 = m[12];
+    float m13 = m[13];
+    float m14 = m[14];
+    float m15 = m[15];
 
     return m0 * m5 * m10 * m15 +
     m0 * m9 * m14 * m7 +
@@ -262,25 +298,25 @@ GLfloat mat4_det(mat4 m) {
 
 }
 
-void mat4_invert(mat4 result, mat4 m) {
-    GLfloat m0 = m[0];
-    GLfloat m1 = m[1];
-    GLfloat m2 = m[2];
-    GLfloat m3 = m[3];
-    GLfloat m4 = m[4];
-    GLfloat m5 = m[5];
-    GLfloat m6 = m[6];
-    GLfloat m7 = m[7];
-    GLfloat m8 = m[8];
-    GLfloat m9 = m[9];
-    GLfloat m10 = m[10];
-    GLfloat m11 = m[11];
-    GLfloat m12 = m[12];
-    GLfloat m13 = m[13];
-    GLfloat m14 = m[14];
-    GLfloat m15 = m[15];
+void math_invertMat4(mat4 result, mat4 m) {
+    float m0 = m[0];
+    float m1 = m[1];
+    float m2 = m[2];
+    float m3 = m[3];
+    float m4 = m[4];
+    float m5 = m[5];
+    float m6 = m[6];
+    float m7 = m[7];
+    float m8 = m[8];
+    float m9 = m[9];
+    float m10 = m[10];
+    float m11 = m[11];
+    float m12 = m[12];
+    float m13 = m[13];
+    float m14 = m[14];
+    float m15 = m[15];
 
-    GLfloat det = mat4_det(m);
+    float det = math_detMat4(m);
 
     result[0] = (m5  * m10 * m15 -
     m5  * m11 * m14 -
@@ -395,19 +431,19 @@ void mat4_invert(mat4 result, mat4 m) {
     m8 * m2 * m5) / det;
 }
 
-void mat4_lookAt(mat4 m, vec3 eye, vec3 at, vec3 up) {
-    GLfloat xaxis[3];
-    GLfloat yaxis[3];
-    GLfloat zaxis[3];
+void math_lookAtMat4(mat4 m, vec3 eye, vec3 at, vec3 up) {
+    float xaxis[3];
+    float yaxis[3];
+    float zaxis[3];
 
-    vec3_sub(zaxis, eye, at);
-    vec3_normalize(zaxis);
+    math_subVec3(zaxis, eye, at);
+    math_normalizeVec3(zaxis);
 
-    vec3_cross(xaxis, up, zaxis);
-    vec3_normalize(xaxis);
+    math_crossVec3(xaxis, up, zaxis);
+    math_normalizeVec3(xaxis);
 
-    vec3_cross(yaxis, zaxis, xaxis);
-    vec3_normalize(yaxis);
+    math_crossVec3(yaxis, zaxis, xaxis);
+    math_normalizeVec3(yaxis);
 
     m[0]  = xaxis[0];
     m[1]  = yaxis[0];
@@ -424,13 +460,13 @@ void mat4_lookAt(mat4 m, vec3 eye, vec3 at, vec3 up) {
     m[10] = zaxis[2];
     m[11] = 0;
 
-    m[12] = -vec3_dot(eye, xaxis);
-    m[13] = -vec3_dot(eye, yaxis);
-    m[14] = -vec3_dot(eye, zaxis);
+    m[12] = -math_dotVec3(eye, xaxis);
+    m[13] = -math_dotVec3(eye, yaxis);
+    m[14] = -math_dotVec3(eye, zaxis);
     m[15] = 1;
 }
 
-void mat4_ortho(mat4 m, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far) {
+void math_orthoMat4(mat4 m, float left, float right, float bottom, float top, float near, float far) {
     m[0]  = 2 / (right - left);
     m[1]  = 0;
     m[2]  = 0;
@@ -452,9 +488,9 @@ void mat4_ortho(mat4 m, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top
     m[15] = 1;
 }
 
-void mat4_perspective(mat4 m, GLfloat yfov, GLfloat aspect, GLfloat near, GLfloat far) {
-    GLfloat top = near * tan(yfov / 2);
-    GLfloat right = top * aspect;
+void math_perspectiveMat4(mat4 m, float yfov, float aspect, float near, float far) {
+    float top = near * tan(yfov / 2);
+    float right = top * aspect;
 
     m[0]  = near / right;
     m[1]  = 0;

@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <X11/Xlib.h>
-#include <time.h>
-#include <unistd.h>
 #include "../src/linux-opengl.h"
-#include "math/mat4.h"
+#include "utils/logl-utils.h"
+#include "utils/logl-math.h"
 
 #define XK_LATIN1
 #include <X11/keysymdef.h>
@@ -14,38 +13,25 @@
 
 #define PI 3.14159
 
-static Display* disp;
-static Window win;
-static XEvent event;
-static XWindowAttributes xWinAtt;
-
-static GLuint modelLocation;
-static GLuint viewProjLocation;
-static GLuint eyePositionLocation;
-static GLuint lightPositionLocation;
-static GLuint texLocation;
-static int numVertices;
-
-static mat4 modelMatrix;
-static mat4 rotateXMatrix;
-static mat4 rotateYMatrix;
-static float xRotation = 0.0f;
-static float yRotation = 0.0f;
-
-double getTime() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    return ts.tv_sec * 1000.0 + ts.tv_nsec / 1000000.0;
-}
-
-void milisleep(double ms) {
-    struct timespec ts;
-    ts.tv_sec = (time_t) (ms / 1000.0);
-    ts.tv_nsec = (long) ((ms - (ts.tv_sec * 1000)) * 1000000);
-    nanosleep(&ts, 0);
-}
-
 int main(int argc, char const *argv[]) {
+    Display* disp;
+    Window win;
+    XEvent event;
+    XWindowAttributes xWinAtt;
+
+    GLuint modelLocation;
+    GLuint viewProjLocation;
+    GLuint eyePositionLocation;
+    GLuint lightPositionLocation;
+    GLuint texLocation;
+    int numVertices;
+
+    mat4 modelMatrix;
+    mat4 rotateXMatrix;
+    mat4 rotateYMatrix;
+    float xRotation = 0.0f;
+    float yRotation = 0.0f;
+
     // X Windows stuff
     disp = XOpenDisplay(NULL);
 
@@ -366,9 +352,9 @@ int main(int argc, char const *argv[]) {
     mat4 viewMatrix;
     mat4 viewProjMatrix;
 
-    mat4_perspective(projMatrix, PI / 4.0f, 1.0, 0.1, 10.0);
-    mat4_lookAt(viewMatrix, eyePosition, lookPosition, upVector);
-    mat4_mult(viewProjMatrix, projMatrix, viewMatrix);
+    math_perspectiveMat4(projMatrix, PI / 4.0f, 1.0, 0.1, 10.0);
+    math_lookAtMat4(viewMatrix, eyePosition, lookPosition, upVector);
+    math_multiplyMat4(viewProjMatrix, projMatrix, viewMatrix);
 
     glUniform3fv(eyePositionLocation, 1, eyePosition);
     glUniform3fv(lightPositionLocation, 1, lightPosition);
@@ -399,9 +385,9 @@ int main(int argc, char const *argv[]) {
 
         xRotation += 0.001;
         yRotation += 0.002;
-        mat4_rotationX(rotateXMatrix, xRotation);
-        mat4_rotationY(rotateYMatrix, yRotation);
-        mat4_mult(modelMatrix, rotateXMatrix, rotateYMatrix);
+        math_rotationXMat4(rotateXMatrix, xRotation);
+        math_rotationYMat4(rotateYMatrix, yRotation);
+        math_multiplyMat4(modelMatrix, rotateXMatrix, rotateYMatrix);
         glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMatrix);    
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
