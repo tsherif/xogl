@@ -21,6 +21,10 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////
 
+/** 
+    @file
+*/
+
 #ifndef _OPENGL_H_
 #define _OPENGL_H_
 
@@ -34,7 +38,7 @@
 //     glBindVertexArrayProc glBindVertexArray;
 //////////////////////////////////
 #define XOGL_DECLARE_PROC(ret, func, ...)\
-typedef ret (*func##Proc)(__VA_ARGS__);\
+typedef ret (func##Proc *)(__VA_ARGS__);\
 func##Proc func;\
 
 // VBOs
@@ -95,7 +99,27 @@ XOGL_DECLARE_PROC(void, glUniformMatrix4x2fv, GLint location, GLsizei count, GLb
 XOGL_DECLARE_PROC(void, glUniformMatrix3x4fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 XOGL_DECLARE_PROC(void, glUniformMatrix4x3fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
+/**
+    @brief Initialize OpenGL context for given window.
+    @param disp Open X11 display connection.
+    @param win X11 window to get the OpenGL context from.
+    @param major OpenGL major version number.
+    @param minor OpenGL minor version number.
+*/
 int xogl_init(Display* disp, Window win, int major, int minor);
-void xogl_destroy(Display* disp);
+
+/**
+    @brief Swap the back and front default framebuffers. Call after
+        completing the GL calls for a frame.
+    @param disp Open X11 display connection.
+    @param win X11 the OpenGL context was optained from.
+*/
 void xogl_swapBuffers(Display* disp, Window win);
+
+/**
+    @brief Destroy the OpenGL context.
+    @param disp Open X11 display connection.
+*/
+void xogl_destroy(Display* disp);
+
 #endif
