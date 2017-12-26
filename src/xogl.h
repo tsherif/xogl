@@ -160,7 +160,7 @@ typedef void (*glUniformMatrix4x3fvProc)(GLint location, GLsizei count, GLboolea
 glUniformMatrix4x3fvProc glUniformMatrix4x3fv;
 
 
-int initOpenGL(Display* disp, Window win);
-void destroyOpenGL(Display* disp);
-void swapBuffers(Display* disp, Window win);
+int xogl_init(Display* disp, Window win);
+void xogl_destroy(Display* disp);
+void xogl_swapBuffers(Display* disp, Window win);
 #endif

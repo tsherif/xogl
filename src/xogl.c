@@ -3,12 +3,12 @@
 #include <string.h>
 #include <X11/Xlib.h>
 #include <GL/glx.h>
-#include "linux-opengl.h"
+#include "xogl.h"
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
 
-int initOpenGL(Display* disp, Window win) {
+int xogl_init(Display* disp, Window win) {
     
     int numFBC = 0;
     GLint visualAtt[] = {
@@ -360,11 +360,11 @@ int initOpenGL(Display* disp, Window win) {
     return 0;
 }
 
-void swapBuffers(Display* disp, Window win) {
+void xogl_swapBuffers(Display* disp, Window win) {
     glXSwapBuffers(disp, win);
 }
 
-void destroyOpenGL(Display* disp) {
+void xogl_destroy(Display* disp) {
     glXMakeCurrent(disp, None, NULL);
     glXDestroyContext(disp, ctx);
 }

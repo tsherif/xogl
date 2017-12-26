@@ -1,5 +1,5 @@
 #include <math.h>
-#include "logl-math.h"
+#include "math.h"
 
 static vec3 tempVec3;
 static mat4 tempMat4;

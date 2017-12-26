@@ -5,19 +5,19 @@ LDLIBS=-lX11 -lGL -lm
 out:
 	mkdir out
 
-linux-opengl.o: out
+xogl.o: out
 	$(CC) $(CFLAGS) -o out/$@ -c ../src/$*.c
 
-logl-utils.o: 
+utils.o: 
 	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
 
-logl-math.o: 
+math.o: 
 	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
 
-triangle: linux-opengl.o logl-utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/linux-opengl.o out/logl-utils.o $(LDLIBS)
+triangle: xogl.o utils.o
+	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.o out/utils.o $(LDLIBS)
 
-phong-cube: linux-opengl.o logl-math.o logl-utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/linux-opengl.o out/logl-utils.o out/logl-math.o $(LDLIBS)
+phong-cube: xogl.o math.o utils.o
+	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.o out/utils.o out/math.o $(LDLIBS)
 
 

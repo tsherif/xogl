@@ -1,5 +1,5 @@
-#ifndef __LINUX_OPENGL_MATH__
-#define __LINUX_OPENGL_MATH__
+#ifndef __XOGL_MATH__
+#define __XOGL_MATH__
 
 typedef float vec3[3];
 typedef float mat4[16];

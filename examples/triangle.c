@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <X11/Xlib.h>
-#include "utils/logl-utils.h"
-#include "../src/linux-opengl.h"
+#include "utils/utils.h"
+#include "../src/xogl.h"
 
 #define XK_LATIN1
 #include <X11/keysymdef.h>
@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
     XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
     XMapWindow(disp, win);
 
-    if (initOpenGL(disp, win)) {
+    if (xogl_init(disp, win)) {
         fprintf(stderr, "Unable initialize OpenGL!\n");
         return 1;
     }
@@ -135,7 +135,7 @@ int main(int argc, char const *argv[]) {
 
     // Animation loop
     while (1) {
-        startTime = getTime();    
+        startTime = utils_getTime();    
 
         if (XCheckWindowEvent(disp, win, ExposureMask | KeyPressMask, &event) == True) {
 
@@ -158,18 +158,18 @@ int main(int argc, char const *argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        swapBuffers(disp, win);
+        xogl_swapBuffers(disp, win);
 
-        endTime = getTime();
+        endTime = utils_getTime();
         double elapsed = endTime - startTime;
         if (elapsed < frameTime) {
-            milisleep(frameTime - elapsed);
-            endTime = getTime();
+            utils_milisleep(frameTime - elapsed);
+            endTime = utils_getTime();
         }
     };
 
     // Teardown
-    destroyOpenGL(disp);
+    xogl_destroy(disp);
     XDestroyWindow(disp, win);
     XCloseDisplay(disp);
     printf("Done!\n");
