@@ -20,14 +20,14 @@ Basic usage:
         return 1;
     }
 
-    // OpenGL setup function calls
+    // OpenGL function calls
 
     while(1) {
         if (!running) {
             break;
         }
 
-        // OpenGL frame function calls
+        // OpenGL function calls
 
         xogl_swapBuffers(disp, win);
     }
