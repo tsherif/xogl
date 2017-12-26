@@ -72,7 +72,7 @@ XOGL_DECLARE_PROC(void, glUniformMatrix4x2fv, GLint location, GLsizei count, GLb
 XOGL_DECLARE_PROC(void, glUniformMatrix3x4fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 XOGL_DECLARE_PROC(void, glUniformMatrix4x3fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
-int xogl_init(Display* disp, Window win);
+int xogl_init(Display* disp, Window win, int major, int minor);
 void xogl_destroy(Display* disp);
 void xogl_swapBuffers(Display* disp, Window win);
 #endif

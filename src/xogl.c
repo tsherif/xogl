@@ -18,7 +18,7 @@ if (!func) fprintf(stderr, "Unable to get proc" #func "\n");\
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 static GLXContext ctx;
 
-int xogl_init(Display* disp, Window win) {
+int xogl_init(Display* disp, Window win, int major, int minor) {
     
     int numFBC = 0;
     GLint visualAtt[] = {
@@ -55,6 +55,9 @@ int xogl_init(Display* disp, Window win) {
         GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
         None
     };
+
+    contextAttribs[1] = major;
+    contextAttribs[3] = minor;
 
     ctx = glXCreateContextAttribsARB(disp, *fbc, NULL, True, contextAttribs);
 

@@ -30,7 +30,7 @@ int main(int argc, char const *argv[]) {
     XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
     XMapWindow(disp, win);
 
-    if (xogl_init(disp, win)) {
+    if (xogl_init(disp, win, 4, 5)) {
         fprintf(stderr, "Unable initialize OpenGL!\n");
         return 1;
     }
