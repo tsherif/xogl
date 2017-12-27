@@ -28,8 +28,14 @@ LDLIBS=-lX11 -lGL -lm
 out:
 	mkdir out
 
+xogl-context.o: out
+	$(CC) $(CFLAGS) -o out/$@ -c ../src/$*.c
+
 xogl.o: out
 	$(CC) $(CFLAGS) -o out/$@ -c ../src/$*.c
+
+xogl.a: xogl.o xogl-context.o
+	ar cr out/xogl.a out/xogl.o out/xogl-context.o
 
 utils.o: 
 	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
@@ -37,10 +43,10 @@ utils.o:
 math.o: 
 	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
 
-triangle: xogl.o utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.o out/utils.o $(LDLIBS)
+triangle: xogl.a utils.o
+	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.a out/utils.o $(LDLIBS)
 
-phong-cube: xogl.o math.o utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.o out/utils.o out/math.o $(LDLIBS)
+phong-cube: xogl.a math.o utils.o
+	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.a out/utils.o out/math.o $(LDLIBS)
 
 

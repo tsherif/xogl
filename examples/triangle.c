@@ -59,7 +59,6 @@ int main(int argc, char const *argv[]) {
     }
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
 
     GLuint vertexArray = 0;
     glGenVertexArrays(1, &vertexArray);
@@ -122,6 +121,9 @@ int main(int argc, char const *argv[]) {
     glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
     if (params != GL_TRUE) {
         printf("Vertex shader did not compile!\n");
+        // char buffer[1024];
+        // glGetShaderInfoLog(vs, 1024, 0, buffer);
+        // printf("%s\n", buffer);
         exit(1);
     }
 
