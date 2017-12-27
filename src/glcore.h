@@ -1,3 +1,5 @@
+// Modified from https://www.khronos.org/registry/OpenGL/api/GL/glcorearb.h
+
 #ifndef __glcorearb_h_
 #define __glcorearb_h_ 1
 
