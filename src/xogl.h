@@ -38,7 +38,7 @@
 //     glBindVertexArrayProc glBindVertexArray;
 //////////////////////////////////
 #define XOGL_DECLARE_PROC(ret, func, ...)\
-typedef ret (func##Proc *)(__VA_ARGS__);\
+typedef ret (*func##Proc)(__VA_ARGS__);\
 func##Proc func;\
 
 // VBOs
