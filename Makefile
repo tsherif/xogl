@@ -25,28 +25,33 @@ CFLAGS=-g -Wall
 CC=gcc
 LDLIBS=-lX11 -lGL -lm
 
-out:
-	mkdir out
-
-xogl-context.o: out
-	$(CC) $(CFLAGS) -o out/$@ -c ../src/$*.c
-
-xogl.o: out
-	$(CC) $(CFLAGS) -o out/$@ -c ../src/$*.c
-
 xogl.a: xogl.o xogl-context.o
-	ar cr out/xogl.a out/xogl.o out/xogl-context.o
+	ar cr build/xogl.a build/xogl.o build/xogl-context.o && rm -f build/*.o
 
-utils.o: 
-	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
+examples: triangle phong-cube
 
-math.o: 
-	$(CC) $(CFLAGS) -o out/$@ -c utils/$*.c
+examples-build:
+	mkdir examples/build
 
-triangle: xogl.a utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.a out/utils.o $(LDLIBS)
+build:
+	mkdir build
 
-phong-cube: xogl.a math.o utils.o
-	$(CC) $(CFLAGS) -o out/$@ $@.c out/xogl.a out/utils.o out/math.o $(LDLIBS)
+xogl-context.o: build
+	$(CC) $(CFLAGS) -o build/$@ -c src/$*.c
+
+xogl.o: build
+	$(CC) $(CFLAGS) -o build/$@ -c src/$*.c
+
+utils.o: examples-build
+	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
+
+math.o: examples-build
+	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
+
+triangle: xogl.a utils.o examples-build
+	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o $(LDLIBS)
+
+phong-cube: xogl.a math.o utils.o examples-build
+	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
 

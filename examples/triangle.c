@@ -121,9 +121,6 @@ int main(int argc, char const *argv[]) {
     glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
     if (params != GL_TRUE) {
         printf("Vertex shader did not compile!\n");
-        // char buffer[1024];
-        // glGetShaderInfoLog(vs, 1024, 0, buffer);
-        // printf("%s\n", buffer);
         exit(1);
     }
 

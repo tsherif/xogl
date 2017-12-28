@@ -345,7 +345,11 @@ int main(int argc, char const *argv[]) {
     texLocation = glGetUniformLocation(program, "tex");
 
     int img_width, img_height, bytes_per_pixel;
-    unsigned char* image = stbi_load("img/opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
+    unsigned char* image = stbi_load("examples/img/opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
+
+    if (!image) {
+        stbi_load("img/opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
+    }
 
     if (!image) {
         printf("No image!\n");
