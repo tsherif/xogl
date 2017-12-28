@@ -21,8 +21,8 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __XOGL_MATH__
-#define __XOGL_MATH__
+#ifndef _XOGL_MATH_
+#define _XOGL_MATH_
 
 typedef float vec3[3];
 typedef float mat4[16];

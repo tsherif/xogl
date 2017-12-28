@@ -77,158 +77,9 @@ int main(int argc, char const *argv[]) {
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
-    float positionData[] = {
-        //front
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-
-        //right
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-
-        //back
-        0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-
-        //left
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-
-        //top
-        -0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, 0.5f,
-
-        //bottom
-        -0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, -0.5f
-    };
-
-    float uvData[] = {
-        //front
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1,
-
-        //right
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1,
-
-        //back
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1,
-
-        //left
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1,
-
-        //top
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1,
-
-        //bottom
-        0, 0,
-        1, 0,
-        0, 1,
-        0, 1,
-        1, 0,
-        1, 1
-    };
-
-    float normalData[] = {
-        // front
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1, 
-        0, 0, -1,
-
-        // right
-        1, 0, 0, 
-        1, 0, 0, 
-        1, 0, 0, 
-        1, 0, 0, 
-        1, 0, 0, 
-        1, 0, 0,
-
-        // back 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-        0, 0, 1, 
-
-        // left
-        -1, 0, 0, 
-        -1, 0, 0, 
-        -1, 0, 0, 
-        -1, 0, 0, 
-        -1, 0, 0, 
-        -1, 0, 0,
-
-        // top 
-        0, 1, 0, 
-        0, 1, 0, 
-        0, 1, 0, 
-        0, 1, 0, 
-        0, 1, 0, 
-        0, 1, 0,
-
-        // bottom
-        0, -1, 0, 
-        0, -1, 0, 
-        0, -1, 0, 
-        0, -1, 0, 
-        0, -1, 0, 
-        0, -1, 0
-    };
-
-    numVertices = (sizeof(positionData) / sizeof(float)) / 3;
+    numVertices = (sizeof(UNIT_CUBE.positions) / sizeof(float)) / 3;
 
     GLuint vertexArray = 0;
     glGenVertexArrays(1, &vertexArray);
@@ -237,21 +88,21 @@ int main(int argc, char const *argv[]) {
     GLuint positions = 0;
     glGenBuffers(1, &positions);
     glBindBuffer(GL_ARRAY_BUFFER, positions);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positionData), positionData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UNIT_CUBE.positions), UNIT_CUBE.positions, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
 
     GLuint uvs = 0;
     glGenBuffers(1, &uvs);
     glBindBuffer(GL_ARRAY_BUFFER, uvs);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uvData), uvData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UNIT_CUBE.uvs), UNIT_CUBE.uvs, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(1);
 
     GLuint normals = 0;
     glGenBuffers(1, &normals);
     glBindBuffer(GL_ARRAY_BUFFER, normals);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(normalData), normalData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UNIT_CUBE.normals), UNIT_CUBE.normals, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(2);
 
@@ -271,7 +122,7 @@ int main(int argc, char const *argv[]) {
     "void main() {\n"
         "vec4 worldPosition = uModel * position;\n"
         "vPosition = worldPosition.xyz;\n"
-        "vUV = 1.0 - uv;\n"
+        "vUV = vec2(uv.x, 1.0 - uv.y);\n"
         "vNormal = (uModel * normal).xyz;\n"
         "gl_Position = uViewProj * worldPosition;\n"
     "};\n";

@@ -21,10 +21,17 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __XOGL_UTILS__
-#define __XOGL_UTILS__
+#ifndef _XOGL_UTILS_
+#define _XOGL_UTILS_
+
+const struct UnitCube {
+    float positions[108];
+    float normals[108];
+    float uvs[72];
+} UNIT_CUBE;
 
 double utils_getTime(void);
 void utils_milisleep(double ms);
+
 
 #endif

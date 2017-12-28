@@ -30,7 +30,7 @@ xogl.a: xogl.o xogl-context.o
 
 examples: triangle phong-cube
 
-examples-build:
+examples/build:
 	mkdir examples/build
 
 build:
@@ -42,16 +42,16 @@ xogl-context.o: build
 xogl.o: build
 	$(CC) $(CFLAGS) -o build/$@ -c src/$*.c
 
-utils.o: examples-build
+utils.o: examples/build
 	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
 
-math.o: examples-build
+math.o: examples/build
 	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
 
-triangle: xogl.a utils.o examples-build
+triangle: xogl.a utils.o examples/build
 	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o $(LDLIBS)
 
-phong-cube: xogl.a math.o utils.o examples-build
+phong-cube: xogl.a math.o utils.o examples/build
 	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
 
