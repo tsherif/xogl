@@ -418,7 +418,7 @@ int main(int argc, char const *argv[]) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, numVertices);
 
-        xogl_swapBuffers(disp, win);
+        xogl_swapBuffers();
 
         endTime = utils_getTime();
         double elapsed = endTime - startTime;
@@ -429,7 +429,7 @@ int main(int argc, char const *argv[]) {
     };
 
     // Teardown
-    xogl_destroy(disp);
+    xogl_destroy();
     XDestroyWindow(disp, win);
     XCloseDisplay(disp);
     printf("Done!\n");

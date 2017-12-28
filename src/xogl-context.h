@@ -26,7 +26,7 @@
 
 int xogl_context_create(Display* disp, Window win, int major, int minor);
 void* xogl_context_getProc(const char* proc);
-void xogl_context_swapBuffers(Display* disp, Window win);
-void xogl_context_destroy(Display* disp);
+void xogl_context_swapBuffers(void);
+void xogl_context_destroy(void);
 
 #endif

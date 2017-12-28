@@ -29,8 +29,8 @@ Basic usage:
 
         // OpenGL function calls
 
-        xogl_swapBuffers(disp, win);
+        xogl_swapBuffers();
     }
 
-    xogl_destroy(disp);
+    xogl_destroy();
 ```

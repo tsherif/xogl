@@ -42,15 +42,13 @@ int xogl_init(Display* disp, Window win, int major, int minor);
 /**
     @brief Swap the back and front default framebuffers. Call after
         completing the GL calls for a frame.
-    @param disp Open X11 display connection.
-    @param win X11 the OpenGL context was optained from.
 */
-void xogl_swapBuffers(Display* disp, Window win);
+void xogl_swapBuffers(void);
 
 /**
     @brief Destroy the OpenGL context.
     @param disp Open X11 display connection.
 */
-void xogl_destroy(Display* disp);
+void xogl_destroy(void);
 
 #endif

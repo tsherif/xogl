@@ -26,9 +26,13 @@
 #include <GL/glx.h>
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+static Display* display;
+static Window window;
 static GLXContext ctx;
 
 int xogl_context_create(Display* disp, Window win, int major, int minor) {
+    display = disp;
+    window = win;
     
     int numFBC = 0;
     GLint visualAtt[] = {
@@ -43,7 +47,7 @@ int xogl_context_create(Display* disp, Window win, int major, int minor) {
         None
     };
 
-    GLXFBConfig *fbc = glXChooseFBConfig(disp, DefaultScreen(disp), visualAtt, &numFBC);
+    GLXFBConfig *fbc = glXChooseFBConfig(display, DefaultScreen(display), visualAtt, &numFBC);
 
     if (!fbc) {
         fprintf(stderr, "Unable to get framebuffer\n");
@@ -68,7 +72,7 @@ int xogl_context_create(Display* disp, Window win, int major, int minor) {
     contextAttribs[1] = major;
     contextAttribs[3] = minor;
 
-    ctx = glXCreateContextAttribsARB(disp, *fbc, NULL, True, contextAttribs);
+    ctx = glXCreateContextAttribsARB(display, *fbc, NULL, True, contextAttribs);
 
     XFree(fbc);
 
@@ -77,7 +81,7 @@ int xogl_context_create(Display* disp, Window win, int major, int minor) {
         return -1;
     }
 
-    glXMakeCurrent(disp, win, ctx);
+    glXMakeCurrent(display, window, ctx);
 
     return 0;
 }
@@ -86,11 +90,13 @@ void* xogl_context_getProc(const char* proc) {
     return glXGetProcAddress((const GLubyte *) proc);
 }
 
-void xogl_context_swapBuffers(Display* disp, Window win) {
-    glXSwapBuffers(disp, win);
+void xogl_context_swapBuffers(void) {
+    glXSwapBuffers(display, window);
 }
 
-void xogl_context_destroy(Display* disp) {
-    glXMakeCurrent(disp, None, NULL);
-    glXDestroyContext(disp, ctx);
+void xogl_context_destroy(void) {
+    if (glXGetCurrentContext() == ctx) {
+        glXMakeCurrent(display, None, NULL);
+    }
+    glXDestroyContext(display, ctx);
 }

@@ -1438,10 +1438,10 @@ int xogl_init(Display* disp, Window win, int major, int minor) {
     return 0;
 }
 
-void xogl_swapBuffers(Display* disp, Window win) {
-    xogl_context_swapBuffers(disp, win);
+void xogl_swapBuffers(void) {
+    xogl_context_swapBuffers();
 }
 
-void xogl_destroy(Display* disp) {
-    xogl_context_destroy(disp);
+void xogl_destroy(void) {
+    xogl_context_destroy();
 }
