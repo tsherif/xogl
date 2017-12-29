@@ -94,7 +94,6 @@ int main(int argc, char const *argv[]) {
     }
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
     Box boxes[NUM_BOXES];
@@ -167,7 +166,7 @@ int main(int argc, char const *argv[]) {
     glGenBuffers(1, &quadPositions);
     glBindBuffer(GL_ARRAY_BUFFER, quadPositions);
     glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD_POSITIONS), QUAD_POSITIONS, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(0);
 
     ////////////////////////////////
@@ -422,7 +421,7 @@ int main(int argc, char const *argv[]) {
     if (params != GL_TRUE) {
         char buffer[1024];
         glGetProgramInfoLog(blurProgram, 1024, NULL, buffer);
-        fprintf(stderr, "Blus program: s%s\n", buffer);
+        fprintf(stderr, "Blur program: s%s\n", buffer);
         return 1;
     }
 
@@ -560,7 +559,8 @@ int main(int argc, char const *argv[]) {
         // DRAW BOXES
         ////////////////////
 
-        // glBindFramebuffer(GL_FRAMEBUFFER, boxBuffer);
+        glEnable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, boxBuffer);
         glUseProgram(boxProgram);
         glBindVertexArray(boxArray);
 
@@ -588,6 +588,32 @@ int main(int argc, char const *argv[]) {
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(modelMatrixData), modelMatrixData);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawArraysInstanced(GL_TRIANGLES, 0, numVertices, NUM_BOXES);
+
+        ////////////////////
+        // HORIZONTAL BLUR
+        ////////////////////
+
+        glDisable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, hblurBuffer);
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glUseProgram(blurProgram);
+        glBindVertexArray(quadVertexArray);
+
+        glUniform1i(textureLocation, 1);
+        glUniform2fv(texelOffsetLocation, 1, hTexelOffset);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        ////////////////////
+        // VERTICAL BLUR
+        ////////////////////
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glUseProgram(blurProgram);
+        glBindVertexArray(quadVertexArray);
+
+        glUniform1i(textureLocation, 3);
+        glUniform2fv(texelOffsetLocation, 1, vTexelOffset);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         xogl_swapBuffers();
 
