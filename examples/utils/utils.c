@@ -176,6 +176,13 @@ const struct UnitCube UNIT_CUBE = {
     }
 };
 
+const float QUAD_POSITIONS[8] = {
+    -1.0f, 1.0f,
+    -1.0f, -1.0f,
+    1.0f, -1.0f,
+    1.0f, 1.0f
+};
+
 double utils_getTime(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);

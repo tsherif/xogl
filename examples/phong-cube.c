@@ -232,7 +232,7 @@ int main(int argc, char const *argv[]) {
     mat4 viewMatrix;
     mat4 viewProjMatrix;
 
-    math_perspectiveMat4(projMatrix, PI / 4.0f, 1.0, 0.1, 10.0);
+    math_perspectiveMat4(projMatrix, PI / 2.0f, 1.0, 0.1, 10.0);
     math_lookAtMat4(viewMatrix, eyePosition, lookPosition, upVector);
     math_multiplyMat4(viewProjMatrix, projMatrix, viewMatrix);
 

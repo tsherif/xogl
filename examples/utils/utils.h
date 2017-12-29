@@ -30,6 +30,8 @@ const struct UnitCube {
     float uvs[72];
 } UNIT_CUBE;
 
+const float QUAD_POSITIONS[8];
+
 double utils_getTime(void);
 void utils_milisleep(double ms);
 

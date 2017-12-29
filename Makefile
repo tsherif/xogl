@@ -28,7 +28,7 @@ LDLIBS=-lX11 -lGL -lm
 xogl.a: xogl.o xogl-context.o
 	ar cr build/xogl.a build/xogl.o build/xogl-context.o && rm -f build/*.o
 
-examples: triangle phong-cube
+examples: triangle phong-cube dof
 
 examples/build:
 	mkdir examples/build
@@ -54,4 +54,6 @@ triangle: xogl.a utils.o examples/build
 phong-cube: xogl.a math.o utils.o examples/build
 	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
+dof: xogl.a math.o utils.o examples/build
+	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
