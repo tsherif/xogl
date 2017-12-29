@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
     
 
     XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
-    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XStoreName(disp, win, "XOGL Phong Cube Example");
     XMapWindow(disp, win);
 
     if (xogl_init(disp, win, 4, 5)) {

@@ -55,10 +55,10 @@
 #define NUM_BOXES (BOXES_PER_ROW * NUM_ROWS)
 
 typedef struct {
-    mat4 modelMatrix;
     vec3 scale;
     vec3 rotate;
     vec3 translate;
+    float *modelMatrix;
 } Box;
 
 int main(int argc, char const *argv[]) {
@@ -68,11 +68,6 @@ int main(int argc, char const *argv[]) {
     XWindowAttributes xWinAtt;
 
     int numVertices;
-
-
-    float ppm = sqrt(WINDOW_WIDTH * WINDOW_WIDTH + WINDOW_HEIGHT * WINDOW_HEIGHT) / 35;
-    float depthRange[] = { NEAR, FAR }; 
-    float resolution[] = { WINDOW_WIDTH, WINDOW_HEIGHT }; 
 
     // X Windows stuff
     disp = XOpenDisplay(NULL);
@@ -85,7 +80,7 @@ int main(int argc, char const *argv[]) {
     win = XCreateSimpleWindow(disp, DefaultRootWindow(disp), 20, 20, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0);
     
     XSelectInput(disp, win, ExposureMask | KeyPressMask | ButtonPressMask);
-    XStoreName(disp, win, "Tarek's Bare-bones OpenGL App!");
+    XStoreName(disp, win, "XOGL Depth of Field Example");
     XMapWindow(disp, win);
 
     if (xogl_init(disp, win, 4, 5)) {
@@ -97,6 +92,7 @@ int main(int argc, char const *argv[]) {
     glEnable(GL_CULL_FACE);
 
     Box boxes[NUM_BOXES];
+    float modelMatrixData[NUM_BOXES * 16];
 
     int boxI = 0;
     for (int j = 0; j < NUM_ROWS; ++j) {
@@ -105,11 +101,13 @@ int main(int argc, char const *argv[]) {
             math_setVec3(boxes[boxI].scale, 0.9, 0.9, 0.9);
             math_setVec3(boxes[boxI].rotate, -boxI / PI, 0, boxI / PI);
             math_setVec3(boxes[boxI].translate, -i + 2 - rowOffset, 0, -i + 2 + rowOffset);
+
+            // Points directly into modelMatrixData array
+            boxes[boxI].modelMatrix = modelMatrixData + (boxI * 16);
             ++boxI;
         }
     }
 
-    float modelMatrixData[NUM_BOXES * 16];
 
 
     numVertices = (sizeof(UNIT_CUBE.positions) / sizeof(float)) / 3;
@@ -143,10 +141,10 @@ int main(int argc, char const *argv[]) {
     glGenBuffers(1, &matrices);
     glBindBuffer(GL_ARRAY_BUFFER, matrices);
     glBufferData(GL_ARRAY_BUFFER, sizeof(modelMatrixData), modelMatrixData, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 64, 0);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 64, 16);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 64, 32);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 64, 48);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 64, (const GLvoid *) 0);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 64, (const GLvoid *) 16);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 64, (const GLvoid *) 32);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 64, (const GLvoid *) 48);
 
     glVertexAttribDivisor(3, 1);
     glVertexAttribDivisor(4, 1);
@@ -284,66 +282,54 @@ int main(int argc, char const *argv[]) {
     "}";
 
     const char* blurFsSource = 
-     "#version 450\n"
-     "precision highp float;\n"
-
-     "layout(std140, column_major) uniform;\n"
-
-     "#define MAX_BLUR 20.\n"
-
-     "uniform DOFUniforms {\n"
-         "float uFocusDistance;\n"
-         "float uBlurCoefficient;\n"
-         "float uPPM;\n"
-         "vec2  uDepthRange;\n" 
-         "vec2 uResolution;\n"
-    "};\n"
-     
-     "uniform vec2 uTexelOffset;\n"
-
-     "uniform sampler2D uColor;\n"
-     "uniform sampler2D uDepth;\n"
-     
-     "out vec4 fragColor;\n"
-
-     "void main() {\n"
-         "ivec2 fragCoord = ivec2(gl_FragCoord.xy);\n"
-         "ivec2 resolution = ivec2(uResolution) - 1;\n"
-
-         // Convert to linear depth
-         "float ndc = 2.0 * texelFetch(uDepth, fragCoord, 0).r - 1.0;\n"
-         "float depth = -(2.0 * uDepthRange.y * uDepthRange.x) / (ndc * (uDepthRange.y - uDepthRange.x) - uDepthRange.y - uDepthRange.x);\n"
-         "float deltaDepth = abs(uFocusDistance - depth);\n"
-         
-         // Blur more quickly in the foreground.
-         "float xdd = depth < uFocusDistance ? abs(uFocusDistance - deltaDepth) : abs(uFocusDistance + deltaDepth);\n"
-         "float blurRadius = min(floor(uBlurCoefficient * (deltaDepth / xdd) * uPPM), MAX_BLUR);\n"
-         
-         "vec4 color = vec4(0.0);\n"
-         "if (blurRadius > 1.0) {\n"
-             "float halfBlur = blurRadius * 0.5;\n"
-
-             "float count = 0.0;\n"
-
-             "for (float i = 0.0; i <= MAX_BLUR; ++i) {\n"
-                 "if (i > blurRadius) {\n"
-                     "break;\n"
-                 "}\n"
-
-                 // texelFetch outside texture gives vec4(0.0) (undefined in ES 3)
-                 "ivec2 sampleCoord = clamp(fragCoord + ivec2(((i - halfBlur) * uTexelOffset)), ivec2(0), resolution);\n"
-                 "color += texelFetch(uColor, sampleCoord, 0);\n"
-
-                 "++count;\n"
-             "}\n"
-
-             "color /= count;\n"
-         "} else {\n"
-             "color = texelFetch(uColor, fragCoord, 0);\n"
-         "}\n"
-
-         "fragColor = color;\n"
-     "}\n";
+    "#version 450\n"
+    "precision highp float;\n"
+    "layout(std140, column_major) uniform;\n"
+    "#define MAX_BLUR 20.\n"
+    "uniform DOFUniforms {\n"
+        "vec2  uDepthRange;\n" 
+        "vec2 uResolution;\n"
+        "float uFocusDistance;\n"
+        "float uBlurCoefficient;\n"
+        "float uPPM;\n"
+   "};\n"
+    
+    "uniform vec2 uTexelOffset;\n"
+    "uniform sampler2D uColor;\n"
+    "uniform sampler2D uDepth;\n"
+    
+    "out vec4 fragColor;\n"
+    "void main() {\n"
+        "ivec2 fragCoord = ivec2(gl_FragCoord.xy);\n"
+        "ivec2 resolution = ivec2(uResolution) - 1;\n"
+        // Convert to linear depth
+        "float ndc = 2.0 * texelFetch(uDepth, fragCoord, 0).r - 1.0;\n"
+        "float depth = -(2.0 * uDepthRange.y * uDepthRange.x) / (ndc * (uDepthRange.y - uDepthRange.x) - uDepthRange.y - uDepthRange.x);\n"
+        "float deltaDepth = abs(uFocusDistance - depth);\n"
+        
+        // Blur more quickly in the foreground.
+        "float xdd = depth < uFocusDistance ? abs(uFocusDistance - deltaDepth) : abs(uFocusDistance + deltaDepth);\n"
+        "float blurRadius = min(floor(uBlurCoefficient * (deltaDepth / xdd) * uPPM), MAX_BLUR);\n"
+        
+        "vec4 color = vec4(0.0);\n"
+        "if (blurRadius > 1.0) {\n"
+            "float halfBlur = blurRadius * 0.5;\n"
+            "float count = 0.0;\n"
+            "for (float i = 0.0; i <= MAX_BLUR; ++i) {\n"
+                "if (i > blurRadius) {\n"
+                    "break;\n"
+                "}\n"
+                // texelFetch outside texture gives vec4(0.0) (undefined in ES 3)
+                "ivec2 sampleCoord = clamp(fragCoord + ivec2(((i - halfBlur) * uTexelOffset)), ivec2(0), resolution);\n"
+                "color += texelFetch(uColor, sampleCoord, 0);\n"
+                "++count;\n"
+            "}\n"
+            "color /= count;\n"
+        "} else {\n"
+            "color = texelFetch(uColor, fragCoord, 0);\n"
+        "}\n"
+        "fragColor = color;\n"
+    "}\n";
 
     GLuint boxVertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(boxVertexShader, 1, &boxVsSource, NULL);
@@ -442,45 +428,44 @@ int main(int argc, char const *argv[]) {
     GLuint textureLocation = glGetUniformLocation(blurProgram, "uColor");
     GLuint depthLocation = glGetUniformLocation(blurProgram, "uDepth");
 
-    vec3 eyePosition = { 1.0f, 1.5f, 1.0f };
+    struct {
+        mat4 viewProjMatrix;
+        float eyePosition[4];
+        float lightPosition[4];
+    } sceneUniformData = {{}, { 1.0f, 1.5f, 1.0f }, { 1.0f, 1.0f, 0.5f }};
+    
     vec3 lookPosition = { 0.0f, 0.0f, 0.0f };
     vec3 upVector = { 0.0f, 1.0f, 0.0f };
 
-    vec3 lightPosition = { 1.0f, 1.0f, 0.5f };
-
     mat4 projMatrix;
     mat4 viewMatrix;
-    mat4 viewProjMatrix;
-
+    
     math_perspectiveMat4(projMatrix, PI / 2.0f, WINDOW_WIDTH / WINDOW_HEIGHT, NEAR, FAR);
-    math_lookAtMat4(viewMatrix, eyePosition, lookPosition, upVector);
-    math_multiplyMat4(viewProjMatrix, projMatrix, viewMatrix);
+    math_lookAtMat4(viewMatrix, sceneUniformData.eyePosition, lookPosition, upVector);
+    math_multiplyMat4(sceneUniformData.viewProjMatrix, projMatrix, viewMatrix);
 
     float hTexelOffset[2] = { 1.0, 0.0 };
     float vTexelOffset[2] = { 0.0, 1.0 };
 
-    float sceneUniformData[24];
-    memcpy(sceneUniformData, viewProjMatrix, sizeof(viewProjMatrix));
-    memcpy(sceneUniformData + 16, eyePosition, sizeof(eyePosition));
-    memcpy(sceneUniformData + 20, lightPosition, sizeof(lightPosition));
-
     GLuint sceneUniformBuffer = 0;
     glGenBuffers(1, &sceneUniformBuffer);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, sceneUniformBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(sceneUniformData), sceneUniformData, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(sceneUniformData), &sceneUniformData, GL_STATIC_DRAW);
 
-    float dofUniformData[8];
-    dofUniformData[0] = FOCUS_DISTANCE;
-    dofUniformData[1] = BLUR_COEFFICIENT;
-    dofUniformData[2] = ppm;
-    memcpy(dofUniformData + 4, depthRange, sizeof(depthRange));
-    memcpy(dofUniformData + 6, resolution, sizeof(resolution));
+    struct {
+        float depthRange[2]; 
+        float resolution[2]; 
+        float focusDistance;  
+        float blurCoefficient;  
+        float ppm;
+    } dofUniformData = {{ NEAR, FAR }, { WINDOW_WIDTH, WINDOW_HEIGHT }, FOCUS_DISTANCE, BLUR_COEFFICIENT };
 
+    dofUniformData.ppm = sqrt(WINDOW_WIDTH * WINDOW_WIDTH + WINDOW_HEIGHT * WINDOW_HEIGHT) / 35;
 
     GLuint dofUniformBuffer = 0;
     glGenBuffers(1, &dofUniformBuffer);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, dofUniformBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(dofUniformData), dofUniformData, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(dofUniformData), &dofUniformData, GL_STATIC_DRAW);
 
     int img_width, img_height, bytes_per_pixel;
     unsigned char* image = stbi_load("examples/img/opengl-logo.png", &img_width, &img_height, &bytes_per_pixel, 4);
@@ -580,8 +565,6 @@ int main(int argc, char const *argv[]) {
             math_multiplyMat4(xform, rotationY, xform);
             math_multiplyMat4(xform, rotationZ, xform);
             math_multiplyMat4(xform, translation, xform);
-
-            memcpy(modelMatrixData + i * 16, boxes[i].modelMatrix, sizeof(boxes[i].modelMatrix));
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, matrices);
