@@ -48,14 +48,17 @@ examples/build/utils.o: | examples/build
 examples/build/math.o: | examples/build
 	$(CC) $(CFLAGS) -o examples/build/math.o -c examples/utils/math.c
 
-examples/build/triangle: build/xogl.a examples/build/utils.o | examples/build
+examples/build/triangle: examples/triangle.c build/xogl.a examples/build/utils.o | examples/build
 	$(CC) $(CFLAGS) -o examples/build/triangle examples/triangle.c build/xogl.a examples/build/utils.o $(LDLIBS)
 
-examples/build/phong-cube: build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
+examples/build/phong-cube: examples/phong-cube.c build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
 	$(CC) $(CFLAGS) -o examples/build/phong-cube examples/phong-cube.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
-examples/build/dof: build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
-	$(CC) $(CFLAGS) -o examples/build/dof examples/dof.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
+examples/build/dof: examples/dof.c build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/dof examples/dof.c  build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
+
+examples/build/particles: examples/particles.c build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/particles examples/particles.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
 clean:
 	rm -rf build examples/build
