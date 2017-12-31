@@ -25,10 +25,10 @@ CFLAGS=-g -Wall
 CC=gcc
 LDLIBS=-lX11 -lGL -lm
 
-xogl.a: xogl.o xogl-context.o
-	ar cr build/xogl.a build/xogl.o build/xogl-context.o && rm -f build/*.o
+build/xogl.a: build/xogl.o build/xogl-context.o
+	ar cr build/xogl.a build/xogl.o build/xogl-context.o
 
-examples: triangle phong-cube dof
+examples: examples/build/triangle examples/build/phong-cube examples/build/dof
 
 examples/build:
 	mkdir examples/build
@@ -36,24 +36,26 @@ examples/build:
 build:
 	mkdir build
 
-xogl-context.o: build
-	$(CC) $(CFLAGS) -o build/$@ -c src/$*.c
+build/xogl-context.o: | build
+	$(CC) $(CFLAGS) -o build/xogl-context.o -c src/xogl-context.c
 
-xogl.o: build
-	$(CC) $(CFLAGS) -o build/$@ -c src/$*.c
+build/xogl.o: | build
+	$(CC) $(CFLAGS) -o build/xogl.o -c src/xogl.c
 
-utils.o: examples/build
-	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
+examples/build/utils.o: | examples/build
+	$(CC) $(CFLAGS) -o examples/build/utils.o -c examples/utils/utils.c
 
-math.o: examples/build
-	$(CC) $(CFLAGS) -o examples/build/$@ -c examples/utils/$*.c
+examples/build/math.o: | examples/build
+	$(CC) $(CFLAGS) -o examples/build/math.o -c examples/utils/math.c
 
-triangle: xogl.a utils.o examples/build
-	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o $(LDLIBS)
+examples/build/triangle: build/xogl.a examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/triangle examples/triangle.c build/xogl.a examples/build/utils.o $(LDLIBS)
 
-phong-cube: xogl.a math.o utils.o examples/build
-	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
+examples/build/phong-cube: build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/phong-cube examples/phong-cube.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
-dof: xogl.a math.o utils.o examples/build
-	$(CC) $(CFLAGS) -o examples/build/$@ examples/$@.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
+examples/build/dof: build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/dof examples/dof.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
 
+clean:
+	rm -rf build examples/build
