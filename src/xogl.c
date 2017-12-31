@@ -723,14 +723,16 @@ void (* glNamedBufferPageCommitmentARB)(GLuint buffer, GLintptr offset, GLsizeip
 void (* glTexPageCommitmentARB)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
 
 
-//////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 // func is an OpenGL function, e.g: glBindVertexArray
 // XOGL_GET_PROC(glBindVertexArray) =>
 //     glBindVertexArray = xogl_context_getProc("glBindVertexArray");
 //     if (!glBindVertexArray) fprintf(stderr, "Unable to get proc glBindVertexArray\n");
-//////////////////////////////////
+//
+// (Weird casting to deal with C++ pointer strictness)
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 #define XOGL_GET_PROC(func)\
-func = xogl_context_getProc(#func);\
+*((void**) (&func)) = xogl_context_getProc(#func);\
 if (!func) fprintf(stderr, "Unable to get proc " #func "\n");\
 
 int xogl_init(Display* disp, Window win, int major, int minor) {

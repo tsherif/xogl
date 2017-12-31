@@ -87,7 +87,7 @@ int xogl_context_create(Display* disp, Window win, int major, int minor) {
 }
 
 void* xogl_context_getProc(const char* proc) {
-    return glXGetProcAddress((const GLubyte *) proc);
+    return (void *) glXGetProcAddress((const GLubyte *) proc);
 }
 
 void xogl_context_swapBuffers(void) {
