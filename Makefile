@@ -28,7 +28,7 @@ LDLIBS=-lX11 -lGL -lm
 build/xogl.a: build/xogl.o build/xogl-context.o
 	ar cr build/xogl.a build/xogl.o build/xogl-context.o
 
-examples: examples/build/triangle examples/build/phong-cube examples/build/dof
+examples: examples/build/triangle examples/build/phong-cube examples/build/dof examples/build/compute
 
 examples/build:
 	mkdir examples/build
@@ -59,6 +59,9 @@ examples/build/dof: examples/dof.c build/xogl.a examples/build/math.o examples/b
 
 examples/build/particles: examples/particles.c build/xogl.a examples/build/math.o examples/build/utils.o | examples/build
 	$(CC) $(CFLAGS) -o examples/build/particles examples/particles.c build/xogl.a examples/build/utils.o examples/build/math.o $(LDLIBS)
+
+examples/build/compute: examples/compute.c build/xogl.a examples/build/utils.o | examples/build
+	$(CC) $(CFLAGS) -o examples/build/compute examples/compute.c build/xogl.a examples/build/utils.o $(LDLIBS)
 
 clean:
 	rm -rf build examples/build
