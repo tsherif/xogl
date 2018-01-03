@@ -241,7 +241,7 @@ int main(int argc, char const *argv[]) {
     "void main() {\n"
         "vec4 worldPosition = modelMatrix * position;\n"
         "vPosition = worldPosition.xyz;\n"
-        "vUV = uv;\n"
+        "vUV = vec2(uv.x, 1.0 - uv.y);\n"
         "vNormal = (modelMatrix * vec4(normal, 0.0)).xyz;\n"
         "gl_Position = uViewProj * worldPosition;\n"
     "}\n";
@@ -289,7 +289,7 @@ int main(int argc, char const *argv[]) {
     "#version 450\n"
     "precision highp float;\n"
     "layout(std140, column_major) uniform;\n"
-    "#define MAX_BLUR 20.\n"
+    "#define MAX_BLUR 20.0\n"
     "uniform DOFUniforms {\n"
         "vec2  uDepthRange;\n" 
         "vec2 uResolution;\n"
